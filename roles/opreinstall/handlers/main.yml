@@ -1,0 +1,8 @@
+---
+- name: disable-thp
+  systemd:
+    name: disable-thp 
+    state: started
+    daemon_reload: yes
+    enabled: yes
+    masked: no

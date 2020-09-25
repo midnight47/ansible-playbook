@@ -1,0 +1,24 @@
+---
+- name: Create groups dba and oinstall
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items: '{{ oracle_groups }}'
+  tags: groups, users
+- name: Create users oracle and grid
+  user:
+    append: yes
+    name: "{{ item.login }}"
+    group: oinstall
+    groups: dba
+    state: present
+    home: "/{{ item.login }}"
+    createhome: yes
+    password: '{{ item.pass }}'
+    uid: '{{ item.uid }}'
+  with_items: '{{ oracle_users }}'
+  tags: users
+- name: Change pass after first login
+  command: "/usr/bin/chage -d0 {{ item.login }}"
+  with_items: '{{ oracle_users }}'
+  tags: users

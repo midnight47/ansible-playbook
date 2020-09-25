@@ -1,0 +1,19 @@
+[GitLab-Repo]
+name=GitLab-Repo
+baseurl=https://packages.gitlab.com/gitlab/gitlab-ce/el/{{ ansible_distribution_major_version }}/$basearch
+enabled=1
+#sslverify=1
+#sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+gpgkey=https://packages.gitlab.com/gpg.key
+repo_gpgcheck=0
+metadata_expire=300
+
+[GitLab-Repo-source]
+name=GitLab-Repo-source
+baseurl=https://packages.gitlab.com/gitlab/gitlab-ce/el/{{ ansible_distribution_major_version }}/SRPMS
+enabled=1
+#sslverify=1
+#sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+gpgkey=https://packages.gitlab.com/gpg.key
+repo_gpgcheck=0
+metadata_expire=300

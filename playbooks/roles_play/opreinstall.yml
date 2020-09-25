@@ -1,0 +1,7 @@
+---
+- hosts: 10.242.144.143
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  roles:
+    - opreinstall

@@ -1,0 +1,90 @@
+- name: "Check installed packpages"
+  package_facts:
+    manager: "auto"
+
+- name: "if MYSQL installed all OK"
+  debug:
+   msg: "Packpage mysql FOUND and all ok"
+  when:
+      - "'mysql-community-server' in ansible_facts.packages"
+#      - "inventory_hostname in groups['mysql']"
+
+- name: "if mariadb-5.5 installed all OK"
+  debug:
+   msg: "Packpage mariadb-5.5 FOUND and all ok"
+  when:
+      - "'mariadb-server' in ansible_facts.packages"
+#      - "inventory_hostname in groups['mysql']"
+
+- name: "if mariadb-10.2 installed all OK"
+  debug:
+   msg: "Packpage mariadb-10.2 FOUND and all ok"
+  when:
+      - "'MariaDB-server' in ansible_facts.packages"
+#      - "inventory_hostname in groups['mysql']"
+
+- name: "if mariadb-10.3 installed all OK"
+  debug:
+   msg: "Packpage mariadb-10.3 FOUND and all ok"
+  when:
+      - "'MariaDB-server' in ansible_facts.packages"
+
+- name: "if mariadb-10.4 installed all OK"
+  debug:
+   msg: "Packpage mariadb-10.4 FOUND and all ok"
+  when:
+      - "'MariaDB-server' in ansible_facts.packages"
+
+- name: "if mariadb-10.5 installed all OK"
+  debug:
+   msg: "Packpage mariadb-10.5 FOUND and all ok"
+  when:
+      - "'MariaDB-server' in ansible_facts.packages"
+
+- name: "if postgres-9.2 installed all OK"
+  debug:
+   msg: "Packpage postgres-9.2 FOUND and all ok"
+  when:
+      - "'postgresql' in ansible_facts.packages"
+
+- name: "if postgres-9.4 installed all OK"
+  debug:
+   msg: "Packpage postgres-9.4 FOUND and all ok"
+  when:
+      - "'postgresql94' in ansible_facts.packages"
+
+- name: "if postgres-9.5 installed all OK"
+  debug:
+   msg: "Packpage postgres-9.5 FOUND and all ok"
+  when:
+      - "'postgresql95' in ansible_facts.packages"
+
+
+- name: "if postgres-9.6 installed all OK"
+  debug:
+   msg: "Packpage postgres-9.6 FOUND and all ok"
+  when:
+      - "'postgresql96' in ansible_facts.packages"
+
+- name: "if postgres-10 installed all OK"
+  debug:
+   msg: "Packpage postgres-10 FOUND and all ok"
+  when:
+      - "'postgresql10' in ansible_facts.packages"
+
+- name: "if postgres-11 installed all OK"
+  debug:
+   msg: "Packpage postgres-11 FOUND and all ok"
+  when:
+      - "'postgresql11' in ansible_facts.packages"
+
+- name: "if postgres-12 installed all OK"
+  debug:
+   msg: "Packpage postgres-12 FOUND and all ok"
+  when:
+      - "'postgresql12' in ansible_facts.packages"
+
+
+#- name: "Ansible Print a variable" 
+#  debug: 
+#    var: ansible_facts.packages

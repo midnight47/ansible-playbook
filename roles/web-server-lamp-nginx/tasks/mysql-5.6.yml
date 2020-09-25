@@ -1,0 +1,38 @@
+- name: Install MySQL 5.6 repo
+  yum: 
+   name: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+   state: present
+
+- name: Install MySQL 5.6
+  yum: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-community-server
+    - mysql-community-client
+    - MySQL-python
+
+- name: Start the MySQL service
+  service: name=mysqld state=started enabled=true
+
+- name: Change mysql root password and keep track in 
+  shell: |
+    mysql -uroot --connect-expired-password -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{database_pass}}'); flush privileges;"
+  register: change_temp_pass
+  notify: restart mysqld
+
+- meta: flush_handlers
+- debug:
+    var: change_temp_pass
+
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#    var: "{{item}}"
+#  with_items:
+#    - database_pass
+#    - installdatabase
+#    - database
+#    - password_match
+#  when: "inventory_hostname in groups['mysql']"
+

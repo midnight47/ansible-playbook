@@ -1,0 +1,11 @@
+- name: Create dir "{{ userdir }}"
+  file:
+    path: "{{ userdir }}"
+    state: directory
+    recurse: yes
+    owner: ceph
+    group: wheel
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+
+
+

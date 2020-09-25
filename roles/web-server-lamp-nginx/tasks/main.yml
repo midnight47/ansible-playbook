@@ -1,0 +1,53 @@
+---
+- import_tasks: repo.yml
+  tags: repo
+- import_tasks: check-packpages.yml
+  tags: check-packpages
+- import_tasks: install-packpages.yml
+  tags: packpages
+- import_tasks: change-httpd-main-config.yml
+  tags: change-port-servername
+- import_tasks: add-user-homedir.yml
+  tags: add-user-homedir
+- import_tasks: virtualhost.yml
+  tags: virtualhost
+- import_tasks: mysql-5.6.yml
+  tag: mysql-5.6
+  when:
+    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql56' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mysql-5.7.yml
+  tag: mysql-5.7
+  when: 
+    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql57' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-5.5.yml
+  tags: mariadb-5.5
+  when:
+    - "inventory_hostname in groups['mysql']"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb55' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-10.2.yml
+  tags: mariadb-10.2
+  when:
+    - "inventory_hostname in groups['mysql']"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_2' }}"
+    - "{{ installdatabase }}"
+

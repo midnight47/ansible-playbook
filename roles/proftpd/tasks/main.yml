@@ -1,0 +1,17 @@
+---
+- import_tasks: installepelrepo.yml 
+  tags: epel
+- import_tasks: add-to-hosts.yml
+  tags: /etc/hosts
+- import_tasks: add-to-shells.yml
+  tags: /etc/shells
+- import_tasks: install-proftpd.yml
+  tags: proftpd
+- import_tasks: add-logs.yml
+  tags: logs
+- import_tasks: real-user.yml
+  tags: real-user
+  when: type_real_virtual_user == 'real' 
+- import_tasks:  virtual-user.yml
+  tags: virtual-user
+  when: type_real_virtual_user == 'virtual'

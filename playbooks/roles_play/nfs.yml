@@ -1,0 +1,15 @@
+---
+- hosts: nfs
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - dir_nfs_master: /nfs
+   - dir_nfs_client: /nfs-client
+  roles:
+    - nfs
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name2

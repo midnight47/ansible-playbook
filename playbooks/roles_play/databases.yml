@@ -1,0 +1,19 @@
+---
+- hosts: databases
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - installdatabase: true        # true\false тут указываем нужно ли устанавливать базу данных
+   - database: postgresql-10      # (mysql55; mysql56; mysql57; mysql80; mariadb55; mariadb10_2; mariadb10_3; mariadb10_4; mariadb10_5; postgresql-9.2; postgresql-9.4; postgresql-9.5; postgresql-9.6; postgresql-10; postgresql-11; postgresql-12 ) # тут выбираем версию базы данных
+   - database_pass: G-rG1D6uOOhs  # тут указываем пароль (он должен быть сложным так как иначе не применится по политикам безопасности базы)
+   - proxy: false                 # (true/false) ставим кластер через прокси сервер или с открытым доступом
+   - http_proxy: "http://192.168.1.179:3128"
+   - https_proxy: "http://192.168.1.179:3128"
+  roles:
+    - databases
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name2

@@ -1,0 +1,12 @@
+- name: PROXY ----- Add Docker repo through proxy "{{ http_proxy }}"
+  get_url:
+   url: https://download.docker.com/linux/centos/docker-ce.repo
+   dest: /etc/yum.repos.d/docer-ce.repo
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+  become: yes
+  when:
+      - "'docker' in ansible_facts.packages"
+      - "'docker-ce' in ansible_facts.packages"
+

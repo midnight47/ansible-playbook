@@ -1,0 +1,8 @@
+---
+- import_tasks: addusers.yml 
+  tags: adduser
+- import_tasks: defaultpackages.yml
+  tags: default
+- import_tasks: systemct_conf.yaml
+  tags: tomcat_systemctl_conf
+

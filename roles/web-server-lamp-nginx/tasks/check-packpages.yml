@@ -1,0 +1,47 @@
+- name: "Check PHP installed"
+  package_facts:
+    manager: "auto"
+
+- name: "if NGINX installed all OK"
+  debug:
+   msg: "Packpage NGINX FOUND and all ok"
+  when:
+      - "'nginx' in ansible_facts.packages"
+      - "inventory_hostname in groups['nginx']"
+
+- name: "if APACHE installed all OK"
+  debug:
+   msg: "Packpage APACHE FOUND and all ok"
+  when:
+      - "'httpd' in ansible_facts.packages"
+      - "inventory_hostname in groups['apache']"
+
+- name: "if PHP installed all OK"
+  debug:
+   msg: "Packpage PHP FOUND and all ok"
+  when:
+      - "'php' in ansible_facts.packages"
+      - "inventory_hostname in groups['apache']"
+
+- name: "if MYSQL installed all OK"
+  debug:
+   msg: "Packpage mysql FOUND and all ok"
+  when:
+      - "'mysql-community-server' in ansible_facts.packages"
+      - "inventory_hostname in groups['mysql']"
+
+- name: "if mariadb-5.5 installed all OK"
+  debug:
+   msg: "Packpage mariadb-5.5 FOUND and all ok"
+  when:
+      - "'mariadb-server' in ansible_facts.packages"
+      - "inventory_hostname in groups['mysql']"
+
+- name: "if mariadb-10.2 installed all OK"
+  debug:
+   msg: "Packpage mariadb-10.2 FOUND and all ok"
+  when:
+      - "'MariaDB-server' in ansible_facts.packages"
+      - "inventory_hostname in groups['mysql']"
+
+

@@ -1,0 +1,7 @@
+---
+repo_server_lan: '10.230.144.18'
+repo_server_dmz: '10.242.231.5'
+idrsadmz: 'id_rsadmz.pub'
+idrsalan: 'id_rsalan.pub'
+idrsabilling: 'id_rsabilling.pub'
+idrsatest: 'id_rsatest.pub'

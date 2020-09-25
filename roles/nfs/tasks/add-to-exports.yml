@@ -1,0 +1,18 @@
+- name: add network to /etc/exports
+  lineinfile:
+    dest: "/etc/exports"
+    line: "{{ dir_nfs_master }} {{ hostvars[item].ansible_default_ipv4.address }}/32(rw,sync,no_root_squash,no_subtree_check) "
+    state: present
+  become: yes
+  with_items: "{{ groups.nfsclient }}"
+  when: inventory_hostname in groups['nfsmaster']
+
+- name: execute command "exportfs -rav" on nfs master "{{ groups.nfsmaster }}"
+  become: yes
+  become_user: root
+  shell:
+    cmd: exportfs -rav 
+  when: inventory_hostname in groups['nfsmaster'] 
+
+
+

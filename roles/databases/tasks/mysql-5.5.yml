@@ -1,0 +1,29 @@
+- name: Add repo for mysql 5.5
+  template:
+    src=/etc/ansible/roles/databases/templates/mysql-5.5.repo
+    dest=/etc/yum.repos.d/mysql-5.5.repo
+
+- name: Install MySQL 5.5
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - mysql-community-server
+    - mysql-community-client
+    - MySQL-python
+
+
+- name: Start the MySQL service
+  service: name=mysqld state=started enabled=true
+
+- name: Change mysql root password and keep track in
+  shell: |
+    mysql -uroot -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{database_pass}}'); flush privileges;"
+  register: change_temp_pass
+  notify: restart mysqld
+
+- meta: flush_handlers
+- debug:
+    var: change_temp_pass
+

@@ -1,0 +1,23 @@
+- name: Task to install  gitlab, gitlab-runner, gitlab-registry
+  hosts: 192.168.1.170
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - gitlabrunner: true
+   - proxy: false
+   - proxyIP: "9.9.9.9:3128"
+   - docker_package_state: latest
+   - docker_install_compose: True
+   - docker_compose_version: "1.22.0"
+   - docker_compose_path: /usr/local/bin/docker-compose
+  roles:
+    - gitlab-gitlab-runner
+
+
+#  remote_user: root
+#  tasks: 
+#    - include: tasks/main.yml
+#  handlers:
+#    - include: handlers/main.yml

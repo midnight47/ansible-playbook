@@ -1,0 +1,37 @@
+- name: add real user if it not exist 
+  user:
+    name: "{{ user_name }}"
+    state: present
+  register: webserver_user_registered
+
+- name: change /etc/proftpd.conf if it was set for real user
+  replace:
+    dest: /etc/proftpd.conf
+    regexp: '^AuthOrder'
+    replace: '#AuthOrder'
+
+- name:  add parameters to config for use vurtual user
+  blockinfile:
+    dest: /etc/proftpd.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK config-virtual-user"
+    block: |
+        RequireValidShell off
+        AuthUserFile /etc/proftpd.d/ftpd.passwd
+        AuthPAM off
+        LoadModule mod_auth_file.c
+        AuthOrder mod_auth_file.c
+    state: present
+
+- name: create dir /etc/proftpd.d/
+  file:
+    path: /etc/proftpd.d
+    state: directory
+- name: create file /etc/proftpd.d/ftpd.passwd
+  file:
+    path: /etc/proftpd.d/ftpd.passwd
+    state: touch
+
+- name: create virtual user "{{ virtual_user_name }}" under real user "{{ user_name }}" and home dir "{{ user_dir }}"
+  shell: echo {{ user_pass }} | ftpasswd --passwd --file=/etc/proftpd.d/ftpd.passwd --name={{ virtual_user_name }} --uid={{ webserver_user_registered.uid }} --gid={{ webserver_user_registered.group }} --home={{ user_dir }} --shell={{ user_shell }} --stdin
+
+

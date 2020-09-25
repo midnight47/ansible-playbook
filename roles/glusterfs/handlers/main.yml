@@ -1,0 +1,4 @@
+---
+- name: Start gluster
+  service: name=glusterd state=restarted enabled=yes
+

@@ -1,0 +1,11 @@
+  - name: check etcd
+    set_fact:
+          etcd_check: "{% if ip_addr==etcd1 %}etcd1{% elif ip_addr==etcd2 %}etcd2{% else %}etcd3{% endif %}"
+  - name: put etcd_config
+    template:
+      src: ../templates/etcd.conf
+      dest: /etc/etcd/etcd.conf
+      backup: yes
+  - name: restart etcd service
+    service: name=etcd state=restarted enabled=yes
+    tags: etcd

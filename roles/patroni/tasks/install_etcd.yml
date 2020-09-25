@@ -1,0 +1,5 @@
+  - name: Install etcd
+    yum:
+      name: ['gcc', 'python-devel', 'etcd', 'python-requests', 'python-urllib3' ]
+      state: present
+

@@ -1,0 +1,27 @@
+- name: Import EPEL GPG key.
+  rpm_key:
+   key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+   state: present
+
+- name: Install EPEL repo.
+  yum:
+   name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
+   state: present
+
+- name: Add nginx yum repository
+  yum_repository:
+    name: nginx
+    description: Nginx Repository
+    baseurl: http://nginx.org/packages/centos/{{ ansible_distribution_major_version }}/$basearch/
+    gpgkey: http://nginx.org/packages/keys/nginx_signing.key
+    gpgcheck: yes
+  when: "inventory_hostname in groups['nginx']  and {{ nginx }}"
+
+- name: Add PHP yum repository
+  yum:
+    name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    state: present
+  when: "inventory_hostname in groups['apache']"
+
+
+

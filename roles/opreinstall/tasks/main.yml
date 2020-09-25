@@ -1,0 +1,7 @@
+---
+- import_tasks: hosts.yml
+- import_tasks: packages.yml
+- import_tasks: limits.yml
+- import_tasks: sysctl.yml
+- import_tasks: users.yml
+- import_tasks: disable-thp.yml

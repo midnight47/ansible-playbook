@@ -1,0 +1,21 @@
+---
+- hosts: 192.168.1.175
+  user: ansible
+  become: true
+  gather_facts: yes
+  ignore_errors: yes
+  become_method: sudo
+  tasks:
+  - name: "Check if python and tcpdump is installed"
+    package_facts:
+     manager: "auto"
+  - name: "python or tcpdump is installed"
+    debug:
+     msg: "Packpage FOUND"
+    when:
+     - "'python' in ansible_facts.packages"
+     - "'tcpdump' in ansible_facts.packages"
+  - name: "python or tcpdump is NOT installed"
+    debug:
+      msg: "Packpage NOT found"
+    when: "'python' not in ansible_facts.packages or 'tcpdump' not in ansible_facts.packages"

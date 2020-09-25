@@ -1,0 +1,11 @@
+{
+ "proxies":
+ {
+   "default":
+   {
+     "httpProxy": "http://"{{ proxyIP }}"",
+     "httpsProxy": "https://"{{ proxyIP  }}"",
+     "noProxy": "{{groups['NOproxy'] | to_yaml}}"
+   }
+ }
+}

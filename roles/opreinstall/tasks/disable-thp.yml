@@ -1,0 +1,17 @@
+---
+- name: Disable transparent huge pages in 7 version
+  copy:
+    src: disable-thp.service
+    dest: /etc/systemd/system/disable-thp.service
+    owner: root
+    group: root
+  when: (ansible_distribution_major_version == "7")
+  notify: disable-thp
+  tags: disable-thp
+- name: Disalbe transparent huge pages in 6 version
+  replace:
+    path: /etc/grub.conf
+    regexp: 'quiet$'
+    replace: 'quiet transparent_hugepage=never'
+  when: (ansible_distribution_major_version == "6")
+  tags: disable-thp

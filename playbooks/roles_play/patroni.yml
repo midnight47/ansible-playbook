@@ -1,0 +1,26 @@
+- hosts: patronicluster
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+    - etcd1: "10.242.146.38"
+    - etcd2: "10.242.146.39"
+    - etcd3: "10.242.146.37"
+    - patroni1: "10.242.146.38"
+    - patroni2: "10.242.146.39"
+    - ip_addr: "{{ ansible_default_ipv4.address }}"
+    - patroni_cluster_name: "cluster_for_kuber_prod"
+    - balance1: "10.242.146.36"
+    - balance2: "10.242.146.37"
+    - keepalived_id: "200"
+    - virtual_ip: "10.242.146.35"
+    - http_proxy: "http://10.230.143.15:3128"
+    - https_proxy: "http://10.230.143.15:3128"
+  roles:
+    - patroni
+#  tasks:
+#  - include_role:
+#     name: graylog
+#  - include_role:
+#     name: zabbix

@@ -1,0 +1,35 @@
+- name: Copy tomcat service config to remote host for centos 7
+  template: src=/etc/ansible/roles/tomcat8/templates/tomcat.service dest=/etc/systemd/system/tomcat.service
+  notify:
+        - restart tomcat
+  when:
+    - ansible_distribution_major_version == "7"
+    - ansible_distribution == "CentOS"
+
+- name: Copy tomcat service config to remote host for centos 6
+  template: 
+   src: /etc/ansible/roles/tomcat8/templates/tomcat.service.centos6 
+   dest: /etc/init.d/tomcat
+   force: no
+  notify:
+        - restart tomcat
+  when:
+    - ansible_distribution_major_version == "6"
+    - ansible_distribution == "CentOS"
+- name: Change permissions on /etc/init.d/tomcat
+  file:
+        dest: /etc/init.d/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: u=rwX,g=rX,o=rX
+  when:
+    - ansible_distribution_major_version == "6"
+    - ansible_distribution == "CentOS"
+- name: Add tomcat to chkconfig 
+  shell: "chkconfig --add tomcat"
+  when:
+    - ansible_distribution_major_version == "6"
+    - ansible_distribution == "CentOS"
+
+
+

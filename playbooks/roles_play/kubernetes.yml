@@ -1,0 +1,27 @@
+---
+- hosts: kubernetes
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - proxy: true  # here use true/false
+   - http_proxy: "http://192.168.1.179:3128"
+   - https_proxy: "http://192.168.1.179:3128"
+  roles:
+    - kubernetes
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name
+#
+# тут мы ничего не меняем, только указываем будет ли установка через прокси или нет (лучше нет). В /etc/ansible/hosts добавляем группу kubernetes
+# с подгруппами kubermaster  куда вносим ip адреса мастеров и kuberworker куда добавляем воркеры.
+#[kubernetes:children]
+#kubermaster
+#kuberworker
+#[kubermaster]
+#[kuberworker]
+# будет произведена установка etcd на мастеров (поэтому лучше выбрать их 3 штуки), так же вся установка запуск команд будет производиться на мастере
+# а именно на первом сервере в группе kubermaster
+

@@ -1,0 +1,8 @@
+  - name: put pgboucer_config
+    template:
+      src: ../templates/pgbouncer.ini
+      dest: /etc/pgbouncer/pgbouncer.ini
+      backup: yes
+  - name: restart pgbouncer service
+    service: name=pgbouncer state=restarted enabled=yes
+    tags: pgbouncer

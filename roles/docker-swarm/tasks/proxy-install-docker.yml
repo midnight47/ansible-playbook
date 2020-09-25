@@ -1,0 +1,11 @@
+- name: PROXY -----  Install Docker through proxy "{{ http_proxy }}"
+  package:
+   name: docker-ce
+   state: latest
+  become: yes
+  notify:
+   - Restart docker
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+

@@ -1,0 +1,13 @@
+---
+- import_tasks: installepelrepo.yml 
+  tags: epel
+- import_tasks: create-nfs-dir.yml
+  tags: create-dir
+- import_tasks: install-packpages.yml
+  tags: install-default-packpage
+- import_tasks: started-nfs.yml
+  tags: start-nfs
+- import_tasks: add-to-exports.yml
+  tags: add to exports
+- import_tasks: add-to-fstab-nfs-client.yml
+  tags: add to fstab

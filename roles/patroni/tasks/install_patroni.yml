@@ -1,0 +1,46 @@
+  - name: install pip through proxy "{{ http_proxy }}"
+    yum:
+      name: python-pip
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+  - name: install the package, force upgrade through proxy "{{ http_proxy }}"
+    pip:
+      name: pip
+      executable: pip
+      state: latest
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+  - name: install setuptools
+    pip:
+      name: setuptools
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+
+  - name: install the package, force upgrade
+    pip: 
+      name: setuptools 
+      extra_args: --upgrade
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+  - name: install python packages flake8
+    pip: 
+      name: "flake8"
+    environment:
+      http_proxy: '{{ http_proxy }}'
+      https_proxy: '{{ https_proxy }}'
+  - name: install python packages psycopg2-binary
+    pip:
+      name: "psycopg2-binary"
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"
+  - name: install python packages urllib3 patroni[etcd]
+    pip:
+      name: ['urllib3>=1.19.1', 'patroni[etcd]', 'cryptography', 'certifi', 'idna', 'pyOpenSSL']
+    environment:
+      http_proxy: "{{ http_proxy }}"
+      https_proxy: "{{ https_proxy }}"

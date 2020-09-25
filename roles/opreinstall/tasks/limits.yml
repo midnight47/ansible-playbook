@@ -1,0 +1,8 @@
+---
+- name: Set limits.conf
+  blockinfile:
+    block: "{{ lookup('file', '/etc/ansible/roles/opreinstall/files/limits.conf')}}"
+    dest: "/etc/security/limits.conf"
+    backup: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+  tags: limits

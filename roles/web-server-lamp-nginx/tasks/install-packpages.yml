@@ -1,0 +1,106 @@
+- name: install default packages for all host
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - yum-utils
+    - vim
+
+- name: install nginx to the "{{groups.nginx}}"
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - nginx
+  notify:
+   - restart nginx
+  when: 
+    - "inventory_hostname in groups['nginx']  and {{ nginx }}"
+    - "'nginx' not in ansible_facts.packages"
+
+- name: install apache to the "{{groups.apache}}"
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - httpd
+  notify:
+   - restart httpd
+  when: 
+    - "inventory_hostname in groups['apache']"
+    - "'httpd' not in ansible_facts.packages"
+
+- name: Disable ALL PHP versions
+  command: "{{item}}"
+  with_items:
+    - yum-config-manager --disable remi-php55
+    - yum-config-manager --disable remi-php56
+    - yum-config-manager --disable remi-php70
+    - yum-config-manager --disable remi-php71
+    - yum-config-manager --disable remi-php72
+    - yum-config-manager --disable remi-php73
+    - yum-config-manager --disable remi-php74
+  when: "inventory_hostname in groups['apache']"
+
+- name: Enable php5.5
+  command: yum-config-manager --enable remi-php55
+  when: "inventory_hostname in groups['apache'] and 5.5 == {{ php }}"
+
+- name: Enable php5.6
+  command: yum-config-manager --enable remi-php56
+  when: "inventory_hostname in groups['apache'] and 5.6 == {{ php }}"
+
+- name: Enable php7.0
+  command: yum-config-manager --enable remi-php70
+  when: "inventory_hostname in groups['apache'] and 7.0 == {{ php }}"
+
+- name: Enable php7.1
+  command: yum-config-manager --enable remi-php71
+  when: "inventory_hostname in groups['apache'] and 7.1 == {{ php }}"
+
+- name: Enable php7.2 
+  command: yum-config-manager --enable remi-php72
+  when: "inventory_hostname in groups['apache'] and 7.2 == {{ php }}"
+
+- name: Enable php7.3
+  command: yum-config-manager --enable remi-php73
+  when: "inventory_hostname in groups['apache'] and 7.3 == {{ php }}"
+
+- name: Enable php7.4
+  command: yum-config-manager --enable remi-php74
+  when: "inventory_hostname in groups['apache'] and 7.4 == {{ php }}"
+
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#    var: "{{item}}"
+#  with_items:
+#    - php
+#  when: "inventory_hostname in groups['apache']"
+
+
+
+- name: Install php {{php}}
+  yum: name={{item}} state=present
+  with_items:
+    - php
+    - php-common
+    - php-opcache
+    - php-mcrypt 
+    - php-cli 
+    - php-gd 
+    - php-curl 
+    - php-mysql
+    - php-mbstring
+    - php-mcrypt
+    - php-soap
+    - php-sqlite3
+    - php-xml
+    - php-zip
+    - php-bcmath
+    - php-ssh2
+    - php-rrd
+  when:
+      - "inventory_hostname in groups['apache']"
+      - "'php' not in ansible_facts.packages"
+

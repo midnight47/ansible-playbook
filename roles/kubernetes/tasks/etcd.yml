@@ -1,0 +1,23 @@
+- name: install etcd
+  yum:
+    name: etcd
+    state: latest
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: Delete /etc/etcd/etcd.conf
+  file:
+    path: /etc/etcd/etcd.conf
+    state: absent
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: Copy the template /etc/etcd/etcd.conf to group kubermaster
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/etcd.conf
+    dest: /etc/etcd/etcd.conf
+  when: "inventory_hostname in groups['kubermaster']"
+  notify:
+   - start etcd
+
+- name: Make sure ETCD is started up
+  service: name=etcd state=started enabled=yes
+  when: "inventory_hostname in groups['kubermaster']"

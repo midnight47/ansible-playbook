@@ -1,0 +1,4 @@
+- name: httpd listen on port 
+  lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen " line="Listen {{ http_port }}" state=present
+  notify:
+    - restart httpd

@@ -1,0 +1,26 @@
+---
+- import_tasks: proxy-install-repo-gluster.yml
+  tags: proxy gluster repo
+  when: proxy
+- import_tasks: install-repo-gluster.yml
+  tags: gluster repo
+- import_tasks: create-gluster-dir.yml
+  tags: create-dir
+- import_tasks: add-to-hosts.yml
+  tags: add-hostname-to-hosts
+- import_tasks: proxy-install-gluster-server.yml
+  tags: proxy install-gluster-serer
+  when: proxy
+- import_tasks: install-gluster-server.yml
+  tags: install-gluster-serer
+- import_tasks: proxy-install-gluster-client.yml
+  tags: proxy install-gluster-serer
+  when: proxy
+- import_tasks: install-gluster-client.yml
+  tags: install-gluster-serer
+- import_tasks: add-peer.yml
+  tags: add-peer
+- import_tasks: add-tom.yml
+  tags: add-tom
+- import_tasks: mount.yml
+  tags: mount

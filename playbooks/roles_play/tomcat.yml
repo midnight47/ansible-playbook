@@ -1,0 +1,12 @@
+---
+- hosts: 192.168.1.175
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   directory_for_tomcat: /var
+  roles:
+   - tomcat8
+
+

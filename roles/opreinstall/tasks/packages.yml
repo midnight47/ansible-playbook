@@ -1,0 +1,11 @@
+---
+- name: Copy packages to remote host
+  copy:
+    src: "{{ item }}"
+    dest: /home/{{ item }}
+  with_items: '{{ oracle_packages }}'
+  tags: oracle_packages
+- name: Install additional packages
+  yum: name={{ item }} state=latest
+  with_items: '{{ packages }}'
+  tags: oracle_packages

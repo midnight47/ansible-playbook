@@ -1,0 +1,29 @@
+- name: Add repo for mariadb 10.5
+  template:
+    src=/etc/ansible/roles/databases/templates/mariadb-10.5.repo
+    dest=/etc/yum.repos.d/mariadb-10.5.repo
+
+- name: Install mariadb 10.5
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - MariaDB-server
+    - MariaDB-client
+
+
+- name: Start the mariadb service
+  service: name=mariadb state=started enabled=true
+
+- name: Change mariadb root password and keep track in 
+  shell: |
+    mysql -uroot -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{database_pass}}'); flush privileges;"
+  register: change_temp_pass
+  notify: restart mariadb
+
+- meta: flush_handlers
+- debug:
+    var: change_temp_pass
+
+

@@ -1,0 +1,16 @@
+---
+- hosts: glusterfs
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - dir_gluster_master: /gluster
+   - dir_gluster_client: /var/gluster
+   - name_of_gluster_tom: gluster-tom
+   - replica_number: "{{ groups['glustermaster'] | length }}"
+   - proxy: false  # here use true/false
+   - http_proxy: "http://192.168.1.170:3128"
+   - https_proxy: "http://192.168.1.170:3128"
+  roles:
+    - glusterfs

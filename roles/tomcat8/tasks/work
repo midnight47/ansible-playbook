@@ -1,0 +1,37 @@
+- name: Check install java
+  shell: java -version 2>&1 | grep version | awk '{print $1}' | sed 's/"//g' 
+  register: java_result
+- debug:
+    var: java_result
+
+- name: Install default packages
+  yum:
+      name: "{{item}}"
+      state: present
+  with_items:
+      - java-1.8.0-openjdk
+  when: java_result.stdout != "java" and java_result.stdout != "openjdk" 
+ 
+
+- name: Copy tomcat src to remote host
+  copy:
+        src: /etc/ansible/roles/tomcat8/templates/apache-tomcat-8.5.41.tar.gz
+        dest: "{{ directory_for_tomcat }}"
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+      src: apache-tomcat-8.5.41.tar.gz
+      dest: "{{ directory_for_tomcat }}"
+      remote_src: yes
+
+- name: Move dir and remove archive
+  shell: mv {{ directory_for_tomcat }}/apache-tomcat-8.5.41 {{ directory_for_tomcat }}/tomcat && rm -rf {{ directory_for_tomcat }}/apache-tomcat-8.5.41.tar.gz 
+
+- name: Change permissions on tomcat folder
+  file: 
+        dest: "{{ directory_for_tomcat }}/tomcat/"
+        owner: tomcat
+        group: tomcat 
+        mode: u=rwX,g=rX,o=rX 
+        recurse: yes
+

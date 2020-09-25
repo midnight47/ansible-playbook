@@ -1,0 +1,44 @@
+- name: Replace NGINX config
+  template: 
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/nginx.conf
+    dest=/etc/nginx/nginx.conf
+  notify:
+   - reload nginx
+  when: "inventory_hostname in groups['nginx']  and {{ nginx }} and {{ aggregate_home_dir }}"
+
+- name: Add NGINX virtualhost config for site "{{domain}}" without aggregate home dir
+  template:
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/nginx_vhost_without_aggregate_dir.yml
+    dest=/etc/nginx/conf.d/{{ domain }}.conf
+  notify:
+   - reload nginx
+  when: "inventory_hostname in groups['nginx']  and {{ nginx }} and not {{ aggregate_home_dir}}"
+
+- name: Add NGINX virtualhost config for site "{{domain}}"
+  template:
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/nginx_vhost.conf
+    dest=/etc/nginx/conf.d/{{ domain }}.conf
+  notify:
+   - reload nginx
+  when: "inventory_hostname in groups['nginx']  and {{ nginx }} and {{ aggregate_home_dir}}"
+
+
+- name: Add APACHE virtualhost config for site "{{domain}}"
+  template:
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/httpd_vhost.conf
+    dest=/etc/httpd/conf.d/{{ domain }}.conf
+  notify:
+   - reload httpd
+  when: "inventory_hostname in groups['apache'] and {{ nginx }}"
+
+
+- name: Add APACHE virtualhost config for site "{{domain}}" without NGINX
+  template:
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/httpd_vhost_without_nginx.conf
+    dest=/etc/httpd/conf.d/{{ domain }}.conf
+  notify:
+   - reload httpd
+  when: "inventory_hostname in groups['apache'] and not {{ nginx }}"
+
+
+

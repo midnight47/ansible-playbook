@@ -1,0 +1,9 @@
+  - name: check keepalived
+    set_fact:
+          keepalived_check: "{% if ip_addr==balance1 %}MASTER{% else %}BACKUP{% endif %}"
+          keepalived_priority_check: "{% if ip_addr==balance1 %}100{% else %}90{% endif %}"
+  - name: put keepalived_config
+    template:
+      src: ../templates/keepalived.conf
+      dest: /etc/keepalived/keepalived.conf
+      backup: yes

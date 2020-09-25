@@ -1,0 +1,31 @@
+---
+- import_tasks: gitlab-gitlab-runner-preinstall.yml
+  tags: Preinstall for gitlab and gitlab runner
+- import_tasks: gitlab-install.yml
+  tags: Install gitlab
+
+- import_tasks: add-repo-docker.yml
+  tags: Add repo docker
+  when: gitlabrunner
+- import_tasks: docker-preinstall.yml
+  tags: install packpage fo docker
+  when: gitlabrunner
+- import_tasks: install-docker.yml
+  tags: install docker
+  when: gitlabrunner
+- import_tasks: docker-compose-preinstall.yml
+  tags: install packpage fo docker-compose
+  when: gitlabrunner
+- import_tasks: install-docker-compose.yml
+  tags: install docker-compose
+  when: gitlabrunner
+- import_tasks: docker_proxy.yaml
+  tags: use docker proxy
+  when: proxy
+  when: gitlabrunner
+
+- import_tasks: gitlab-registry.yml
+  tags: Install gitlab-registry
+- import_tasks: gitlab-runner-install.yml
+  tags: Install gitlab-runner
+  when: gitlabrunner

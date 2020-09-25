@@ -1,0 +1,45 @@
+- name: Add repo for mariadb 10.2
+  template:
+    src=/etc/ansible/roles/web-server-lamp-nginx/templates/Mariadb.repo
+    dest=/etc/yum.repos.d/Mariadb.repo
+  when:
+    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_2' }}"
+    - "{{ installdatabase }}"
+
+
+
+- name: Install mariadb 10.2
+  yum: 
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - MariaDB-server 
+    - MariaDB-client
+
+- name: Start the mariadb service
+  service: name=mariadb state=started enabled=true
+
+- name: Change mariadb root password and keep track in 
+  shell: |
+    mysql -uroot -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{database_pass}}'); flush privileges;"
+  register: change_temp_pass
+  notify: restart mariadb
+
+- meta: flush_handlers
+- debug:
+    var: change_temp_pass
+
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#    var: "{{item}}"
+#  with_items:
+#    - database_pass
+#    - installdatabase
+#    - database
+#    - password_match
+#  when: "inventory_hostname in groups['mysql']"
+

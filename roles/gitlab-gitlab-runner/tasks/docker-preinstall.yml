@@ -1,0 +1,9 @@
+- name: default packages for docker
+  yum:
+        name: "{{item}}"
+        state: present
+  with_items:
+        - yum-utils 
+        - device-mapper-persistent-data
+        - lvm2
+

@@ -1,0 +1,11 @@
+- name: Install Docker
+  package:
+   name: docker-ce
+   state: latest
+  become: yes
+  notify:
+   - Restart docker
+  when:
+      - "'docker' not in ansible_facts.packages"
+      - "'docker-ce' not in ansible_facts.packages"
+

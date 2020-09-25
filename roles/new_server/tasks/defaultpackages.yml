@@ -1,0 +1,31 @@
+- name: Install default packages
+  yum:
+        name: "{{item}}"
+        state: present
+  with_items:
+        - telnet
+        - htop
+        - bind-utils
+        - net-tools
+        - vim
+        - nano
+        - tcpdump
+        - ntp
+        - libselinux-python
+        - wget
+
+- name: Install additional packages in Centos/Rhel 7
+  yum:
+        name: "{{ item }}"
+        state: present
+  with_items:
+        - iptables
+        - iptables-services
+  when: (ansible_distribution_major_version == "7")
+
+- name: Delete firewalld service
+  yum:
+         name: firewalld
+         state: absent
+  when: (ansible_distribution_major_version == "7")
+

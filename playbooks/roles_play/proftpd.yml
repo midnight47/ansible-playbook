@@ -1,0 +1,19 @@
+---
+- hosts: 192.168.1.170
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - type_real_virtual_user: virtual
+   - user_name: test
+   - virtual_user_name: 2vtest
+   - user_dir: /var/2test
+   - user_pass: test
+   - user_shell: /sbin/nologin
+  roles:
+    - proftpd
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name2

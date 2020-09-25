@@ -1,0 +1,57 @@
+---
+oracle_packages:
+    - oracleasm-support-2.1.8-1.el6.x86_64.rpm
+    - oracleasmlib-2.0.4-1.el6.x86_64.rpm
+packages:
+    - binutils
+    - compat-libcap1
+    - compat-libstdc++-33
+    #- compat-libstdc++-33.i686
+    - gcc
+    - gcc-c++
+    - glibc
+    - glibc.i686
+    - glibc-devel
+    - glibc-devel.i686
+    - ksh
+    - libgcc
+    - libgcc.i686
+    - libstdc++
+    - libstdc++.i686
+    - libstdc++-devel
+    - libstdc++-devel.i686
+    - libaio
+    - libaio.i686
+    - libaio-devel
+    - libaio-devel.i686
+    - libXext
+    - libXext.i686
+    - libXtst
+    - libXtst.i686
+    - libX11
+    - libX11.i686
+    - libXau
+    - libXau.i686
+    - libxcb
+    - libxcb.i686
+    - libXi
+    - libXi.i686
+    - make
+    - sysstat
+    - unixODBC
+    - unzip
+    - libXrender
+    - xterm
+    - nfs-utils
+    - psmisc
+    - xorg-x11-utils
+    - perl
+    - kmod-oracleasm
+    - /home/oracleasm-support-2.1.8-1.el6.x86_64.rpm
+    - /home/oracleasmlib-2.0.4-1.el6.x86_64.rpm
+oracle_users:
+    - { login: oracle, uid: 501, pass: $6$Mpa9EB8TYdz7eS1n$gtkGVebp/BmU64rfTFcmQQrTFXpfrzjfuiMDdjRHbiHts9Qzk0yHYgzdYt65nCioTe69I1tR.Hi8mYsGRaQrX1 }
+    - { login: grid, uid: 505, pass: $6$Tphl647ZrbsWegG2$5gJkzOC88V/C6YOnj.GGNPV5bsnrY.DBW/hsn0onkvtNsxgCCey1FN9imbe1WrwvbLemfm2w4Q9hwTg2LgRfN. }
+oracle_groups:
+    - oinstall
+    - dba

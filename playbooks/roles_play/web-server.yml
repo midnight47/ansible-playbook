@@ -1,0 +1,23 @@
+---
+- hosts: web-server-LAMP
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - nginx: true                 # true\false тут указываем нужно ли устанавливать nginx или нет
+   - php: 7.4                    # (5.5; 5.6; 7.0; 7.1; 7.2; 7.3; 7.4) тут выбираем версию php
+   - installdatabase: true       # true\false тут указываем нужно ли устанавливать базу данных
+   - database: mariadb10_2       # (mysql56; mysql57; mariadb55; mariadb10_2) # тут выбираем версию базы данных
+   - database_pass: G-rG1D6uOOhs # тут указываем пароль (он должен быть сложным так как иначе не применится по политикам безопасности базы)
+   - user: test2                 # тут указываем пользователя под в домашнюю директорию которого будут ссылаться nginx и apache
+   - user_pass: test2            # тут задаём пароль для пользователя
+   - home_dir: /var/www          # !!! ОБЯЗАТЕЛЬНО без слеша '/' в конце!!!  тут задаём домашнюю директорию, в конечном виде она будет такой: "home_dir"/domain/
+   - aggregate_home_dir: true    # true\false  #(общая домашняя директория true - если на одном сервере и httpd,nginx или стоит nfs сервер с шарой) если false - то ВСЕ запросы будут проксироваться сразу на апач
+   - domain: test2.ru            # тут указываем домен который добавляем
+  roles:
+    - web-server-lamp-nginx
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name2

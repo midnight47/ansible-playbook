@@ -1,0 +1,9 @@
+- name: pool create
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph osd pool create "{{ name_pool }}" "{{pg_num}}" "{{pgp_num}}" 
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+

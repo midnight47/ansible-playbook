@@ -1,0 +1,26 @@
+---
+- hosts: ceph
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - proxy: true  # here use true/false
+   - http_proxy: "http://192.168.1.170:3128"
+   - https_proxy: "http://192.168.1.170:3128"
+   - user_pass: ceph
+   - userdir: /var/ceph-adminDIR/
+   - vgname_lvname: ceph/ceph
+   - name_pool: rbd
+   - pg_num: 128
+   - pgp_num: 128
+  roles:
+    - ceph
+#  tasks:
+#  - include_role:
+#     name: name1
+#     name: name
+#
+#менее 5 OSD - значение pg_num и pgp_num ставим 128;
+#от 5 до 10 OSD - значение pg_num и pgp_num ставим 512;
+#от 10 до 50 OSD - значение pg_num и pgp_num ставим 4096;

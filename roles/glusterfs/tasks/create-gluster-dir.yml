@@ -1,0 +1,28 @@
+---
+- name: Create directory "{{ dir_gluster_master }}" on nfsmaster
+  file:
+    path: "{{ dir_gluster_master }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  when: inventory_hostname in groups['glustermaster']
+
+- name: Create directory "{{ dir_gluster_master }}/gv01" on nfsmaster
+  file:
+    path: "{{ dir_gluster_master }}/gv01"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  when: inventory_hostname in groups['glustermaster']
+
+
+- name: Create directory "{{ dir_gluster_client }}" on nfsclient
+  file:
+    path: "{{ dir_gluster_client }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+

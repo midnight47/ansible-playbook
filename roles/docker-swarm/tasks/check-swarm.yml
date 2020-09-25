@@ -1,0 +1,31 @@
+- name: Set var from first inventory
+  set_fact:
+    first_master_ip: "{{ groups['swarmmaster'][0]  }}"
+
+
+- name: "Check docker swarm"
+  shell: >
+    docker info | grep  Swarm: | awk '{print $2}'
+  register: check_swarm
+  delegate_to: "{{ first_master_ip }}"
+  run_once: true
+
+- name: "check node in docker swarm"
+  become: yes
+  become_user: root
+  shell: 
+    cmd: "docker node ls 2>&1 | awk '{print $1}'"
+  register: check_node
+  delegate_to: "{{ first_master_ip }}"
+  run_once: true
+
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#   var: "{{item}}"
+#  with_items:
+#    - first_master_ip  
+#    - check_swarm
+#    - check_node
+
+

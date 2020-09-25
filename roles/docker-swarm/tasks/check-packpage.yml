@@ -1,0 +1,13 @@
+- name: "Check docker installed"
+  package_facts:
+    manager: "auto"
+
+- name: "if docker installed all OK"
+  debug:
+   msg: "Packpage docker-ce FOUND and all ok"
+  when: 
+      - "'docker-ce' in ansible_facts.packages" 
+
+#- name: "Ansible  Print a variable" 
+#  debug: 
+#    var: ansible_facts.packages

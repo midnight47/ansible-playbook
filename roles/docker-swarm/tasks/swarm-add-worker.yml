@@ -1,0 +1,22 @@
+- name: "add worker to swarm cluster"
+  become: yes
+  become_user: root
+  shell:
+    cmd:  "{{swarm_worker.stdout}}"
+  when:
+      - "inventory_hostname in groups['swarmworker']"
+      - "'docker-ce' in ansible_facts.packages"
+      - "'active' in check_swarm.stdout_lines"
+
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#    var: "{{item}}"
+#  with_items:
+#    - swarm_master.stdout_lines
+#    - swarm_worker.stdout_lines
+#  when: "'swarm' in check_swarm.stdout_lines"
+
+
+
+

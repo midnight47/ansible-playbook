@@ -1,0 +1,11 @@
+  - name: check patroni node
+    set_fact:
+          patroni_check: "{% if ip_addr==patroni1 %}db-1{% else %}db-2{% endif %}"
+  - name: put patroni_config
+    template:
+      src: ../templates/patroni.yml
+      dest: /etc/patroni.yml
+      backup: yes
+  - name: restart patroni 
+    service: name=patroni state=restarted enabled=yes
+    tags: etcd

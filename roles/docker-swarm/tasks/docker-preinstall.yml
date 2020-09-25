@@ -1,0 +1,13 @@
+- name: default packages for docker
+  yum:
+        name: "{{item}}"
+        state: present
+  with_items:
+        - yum-utils 
+        - device-mapper-persistent-data
+        - lvm2
+  when:
+      - "'yum-utils' not in ansible_facts.packages"
+      - "'device-mapper-persistent-data' not in ansible_facts.packages"
+      - "'lvm2' not in ansible_facts.packages"
+

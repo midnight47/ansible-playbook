@@ -1,0 +1,127 @@
+- name: Set var from first inventory
+  set_fact:
+    first_master_ip: "{{ groups['kubermaster'][0] }}"
+
+- name: install default packages for kubernetes
+  yum:
+        name: "{{item}}"
+        state: present
+  with_items:
+        - kubelet 
+        - kubeadm 
+        - kubectl
+  notify:
+   - start kubelet
+
+- name: Start and enable kubelet 
+  service: name=kubelet state=started enabled=yes
+
+- name: Delete config files if exist on {{first_master_ip}}
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - /root/kub-new.yaml
+    - /root/kub.yaml
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+
+- name: Copy template /etc/ansible/roles/kubernetes/templates/kub.yaml  to the first master {{first_master_ip}}
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/kub.yaml 
+    dest: /root/kub.yaml
+  delegate_to: "{{first_master_ip}}" 
+  run_once: true
+
+- name: Copy bash script /etc/ansible/roles/kubernetes/templates/shell-for-kuber.sh for parse init kuber text to the master {{first_master_ip}}
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/shell-for-kuber.sh
+    dest: /root/shell-for-kuber.sh
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: reconfigure /root/kub.yaml to /root/kub-new.yaml on the {{first_master_ip}}
+  shell: kubeadm config migrate --old-config /root/kub.yaml --new-config /root/kub-new.yaml
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: INITIAL KUBERNETES CLUSTER
+  shell: kubeadm init --config=/root/kub-new.yaml --upload-certs
+  register: result_of_initial
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Create file token.txt
+  file:
+    path: "{{item}}"
+    state: touch
+    mode: 0644
+  with_items:
+    - /root/token.txt
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Copy facts of initial kubernetes to files /root/token.txt
+  copy:
+    content: "{{ result_of_initial | to_nice_yaml }}"
+    dest: "/root/token.txt"
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Run bash script /root/shell-for-kuber.sh to parse result of initial kubernetes
+  shell: /bin/bash /root/shell-for-kuber.sh
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Set var token from kubermaster /root/token-master.txt
+  shell: cat /root/token-master.txt 
+  register: token_kubermaster
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Set var token from kuberworker /root/token-worker.txt
+  shell: cat /root/token-worker.txt 
+  register: token_kuberworker
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: create home, copy admin.conf, chown owner of /root/.kube/
+  become: yes
+  become_user: root
+  shell: "{{item}}"
+  with_items:
+    - "mkdir -p /root/.kube"
+    - "cp -i /etc/kubernetes/admin.conf /root/.kube/config"
+    - "chown root:root /root/.kube/config"
+    - "chown root:root /etc/kubernetes/pki"
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Delete files with result of initial, tokens and bash script on the {{first_master_ip}}
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - /root/token.txt
+    - /root/shell-for-kuber.sh
+    - /root/token-master.txt
+    - /root/token-worker.txt
+    - /root/kub.yaml
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+
+###################
+#- name: host
+#  debug:
+#   msg:
+#   - "{{ token_kubermaster.stdout_lines }}"
+#   - "{{ token_kuberworker.stdout_lines }}"
+#  delegate_to: "{{first_master_ip}}"
+#  run_once: true
+
+
+
+
+

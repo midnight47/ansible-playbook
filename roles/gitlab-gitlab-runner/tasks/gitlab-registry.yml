@@ -1,0 +1,16 @@
+- name: Add registry to /etc/gitlab/gitlab.rb
+  blockinfile:
+    path: /etc/gitlab/gitlab.rb
+    block: |
+        external_url 'http://{{ ansible_default_ipv4.address }}'
+        registry_external_url 'http://{{ ansible_default_ipv4.address }}:4567'
+        registry['enable'] = true
+        letsencrypt['enable'] = false
+        prometheus_monitoring['enable'] = false
+- name: GitLab reconfigure after adding REGISTRY
+  become: yes
+  shell: /bin/gitlab-ctl reconfigure
+  tags:
+    - gitlab
+  notify: start_gitlab
+

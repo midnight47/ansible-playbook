@@ -1,0 +1,46 @@
+- name: "Check java installed"
+  package_facts:
+   manager: "auto"
+
+- name: "if java installed all OK"
+  debug:
+   msg: "Packpage FOUND and all ok"
+  when: "'java' in ansible_facts.packages or 'openjdk' in ansible_facts.packages or 'java-1.8.0-openjdk' in ansible_facts.packages"
+
+- name: "java NOT installed"
+  debug:
+   msg: "Packpage NOT installed"
+  when: 
+      - "'java' not in ansible_facts.packages" 
+      - "'openjdk' not in ansible_facts.packages" 
+      - "'java-1.8.0-openjdk' not in ansible_facts.packages"
+
+- name: Install java
+  yum:
+        name: "java-1.8.0-openjdk"
+        state: present
+  when: "'java' not in ansible_facts.packages or 'openjdk' not in ansible_facts.packages or 'java-1.8.0-openjdk' not in ansible_facts.packages"
+
+- name: Copy tomcat src to remote host
+  copy:
+        src: /etc/ansible/roles/tomcat8/templates/apache-tomcat-8.5.41.tar.gz
+        dest: "{{ directory_for_tomcat }}"
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+      src: apache-tomcat-8.5.41.tar.gz
+      dest: "{{ directory_for_tomcat }}"
+      remote_src: yes
+
+- name: Move dir and remove archive
+  shell: mv {{ directory_for_tomcat }}/apache-tomcat-8.5.41 {{ directory_for_tomcat }}/tomcat && rm -rf {{ directory_for_tomcat }}/apache-tomcat-8.5.41.tar.gz 
+
+- name: Change permissions on tomcat folder
+  file: 
+        dest: "{{ directory_for_tomcat }}/tomcat/"
+        owner: tomcat
+        group: tomcat 
+        mode: u=rwX,g=rX,o=rX 
+        recurse: yes
+
+

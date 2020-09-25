@@ -1,0 +1,29 @@
+- name: install haproxy
+  yum:
+    name: haproxy
+    state: latest
+  when: "inventory_hostname in groups['kuberworker']"
+  notify:
+   - start haproxy
+
+- name: Make sure HAPROXY is started up
+  service: name=haproxy state=started enabled=yes
+  when: "inventory_hostname in groups['kuberworker']"
+
+- name: Delete /etc/haproxy/haproxy.cfg
+  file:
+    path: /etc/haproxy/haproxy.cfg
+    state: absent
+  when: "inventory_hostname in groups['kuberworker']"
+
+- name: Copy the template /etc/haproxy/haproxy.cfg to group kuberworker
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+  when: "inventory_hostname in groups['kuberworker']"
+
+- name: Reload haproxy 
+  shell: "systemctl reload haproxy"
+  when: "inventory_hostname in groups['kuberworker']"
+
+

@@ -1,0 +1,22 @@
+- name: Install pre-reqs
+  become: yes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - wget
+    - policycoreutils
+    - pygpgme 
+    - yum-utils
+  tags:
+    - pre-reqs
+
+
+
+- name: Copy GitLab Repo to remote host
+  template: src=/etc/ansible/roles/gitlab-gitlab-runner/templates/gitlab.repo.j2 dest=/etc/yum.repos.d/gitlab.repo  mode='440'
+
+- name: Copy GitLab-Runner Repo to remote host
+  template: src=/etc/ansible/roles/gitlab-gitlab-runner/templates/runner-gitlab-runner.repo dest=/etc/yum.repos.d/runner-gitlab-runner.repo  mode='440'
+

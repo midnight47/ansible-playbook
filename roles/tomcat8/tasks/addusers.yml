@@ -1,0 +1,18 @@
+- name: Ensure group tomcat  exists
+  group:
+        name: "{{ item }}"
+        state: present
+  with_items:
+        - tomcat
+
+- name: add user tomcat
+  user:
+        name: "{{ item }}"
+        group: tomcat
+        shell: /sbin/nologin
+        append: yes
+  with_items:
+        - tomcat
+  
+
+

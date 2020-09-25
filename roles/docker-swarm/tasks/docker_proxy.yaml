@@ -1,0 +1,26 @@
+---
+- name: PROXY ----- create dir for .docker and service.d 
+  file:
+   path: "{{item}}"
+   state: directory
+   mode: 0755
+  with_items:
+   - /root/.docker/
+   - /etc/systemd/system/docker.service.d/
+
+- name: PROXY -----  copy template for proxy to /root/.docker/config.json
+  template: 
+    src: /etc/ansible/roles/docker_docker_compose/templates/config.json 
+    dest: /root/.docker/config.json  
+    mode: 644
+
+- name: PROXY -----  copy template for proxy to /etc/systemd/system/docker.service.d/http-proxy.conf
+  template:
+    src: /etc/ansible/roles/docker_docker_compose/templates/http-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    mode: 644
+  notify:
+   - Reload systemd
+   - Reload docker
+
+

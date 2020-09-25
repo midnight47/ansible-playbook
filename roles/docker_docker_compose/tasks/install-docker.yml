@@ -1,0 +1,7 @@
+- name: Install Docker
+  package:
+   name: docker-ce
+   state: latest
+  become: yes
+  notify:
+   - Restart docker

@@ -1,0 +1,11 @@
+- name: install  grlusterfs server
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - glusterfs 
+    - glusterfs-libs 
+    - glusterfs-server
+  notify:
+   - Start gluster
+  when: inventory_hostname in groups['glustermaster']

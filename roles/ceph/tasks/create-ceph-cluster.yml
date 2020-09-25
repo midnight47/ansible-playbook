@@ -1,0 +1,44 @@
+---
+- name: Create tmp files
+  file: 
+    path: "{{ userdir }}{{ item }}"
+    state: touch
+    mode: 0775
+  with_items:
+  - hostname
+  - bash.sh
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+
+- name: First step Add all hostname for deploy to file "{{ userdir }}hostname"
+  lineinfile:
+    dest: "{{ userdir }}hostname"
+    line: ceph-deploy new {{ansible_hostname}}
+    state: present
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+
+- name: Second step Create bash for run ceph-deploy new
+  shell:
+    cmd: cat "{{ userdir }}hostname" | awk '{print $3}' | tr -s '\r\n' ' ' | awk '{print "#!/bin/bash \n", "ceph-deploy new", $0}' >"{{ userdir }}bash.sh"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+
+- name: Create ceph-cluster
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: /bin/bash "{{ userdir }}bash.sh"
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+
+- name: Remove tmp files
+  file:
+    path: "{{ userdir }}{{ item }}"
+    state: absent
+  with_items:
+  - hostname
+  - bash.sh
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+

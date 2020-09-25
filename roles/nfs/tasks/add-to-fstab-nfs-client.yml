@@ -1,0 +1,16 @@
+- name: add {{ groups.nfsmaster }}:{{ dir_nfs_master }}  {{ dir_nfs_client }}  nfs defaults        1 2   to /etc/fstab
+  lineinfile:
+    dest: /etc/fstab
+    line: "{{ hostvars[item].ansible_default_ipv4.address }}:{{ dir_nfs_master }}  {{ dir_nfs_client }}  nfs defaults        1 2"
+    state: present
+  become: yes
+  with_items: "{{ groups.nfsmaster }}"
+  when: inventory_hostname in groups['nfsclient']
+
+- name: execute command "mount -a" on nfs clients "{{ groups.nfsclient }}"
+  become: yes
+  become_user: root
+  shell:
+    cmd: mount -a
+  when: inventory_hostname in groups['nfsclient']
+

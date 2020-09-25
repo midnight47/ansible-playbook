@@ -1,0 +1,6 @@
+- name: Make sure NFS is started up
+  service: name=nfs state=started enabled=yes
+- name: Make sure rpcbind is started up
+  service: name=rpcbind state=restarted enabled=yes
+
+

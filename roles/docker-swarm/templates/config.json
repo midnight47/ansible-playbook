@@ -1,0 +1,11 @@
+{
+ "proxies":
+ {
+   "default":
+   {
+     "httpProxy": "{{ http_proxy }}",
+     "httpsProxy": "{{ http_proxy }}",
+     "noProxy": "{{groups['swarmNOproxy'] | to_yaml(width=1300)| replace('\n', '')}}"
+   }
+ }
+}

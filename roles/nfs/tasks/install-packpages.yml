@@ -1,0 +1,15 @@
+- name: install default packages for nfs
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - nfs-utils
+    - rpcbind
+  notify:
+    - start nfs
+    - start rpcbind
+  handlers:
+    - name: start nfs
+      service: name=nfs state=started enabled=yes
+    - name: start rpcbind
+      service: name=rpcbind state=started enabled=yes

@@ -1,0 +1,8 @@
+- name: PROXY ----- remove proxy ONLY from /etc/environment
+  blockinfile:
+    dest: /etc/environment
+    block: |
+      export http_proxy="{{ http_proxy }}"
+      export https_proxy="{{ http_proxy }}"
+    state: absent
+

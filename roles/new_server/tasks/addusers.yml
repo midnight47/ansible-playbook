@@ -1,0 +1,26 @@
+- name: add users
+  user:
+        name: "{{ item }}"
+        group: wheel
+        shell: /bin/bash
+        append: yes
+  with_items:
+        - ansible
+        - mid
+        - ceph
+        - user1
+
+- name: Set authorized key took from file for users
+  authorized_key:
+        user: "{{ item }}"
+        state: present
+        key: "{{ lookup('file', '/home/ansible/.ssh/{{ item }}.id_rsa.pub') }}"
+  with_items:
+        - mid
+        - user1
+- name: Set authorized key took from file for ansible
+  authorized_key:
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+

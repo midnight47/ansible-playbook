@@ -1,0 +1,23 @@
+---
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Reload docker
+  service: name=docker state=reloaded
+
+- name: Restart docker
+  service: name=docker state=started enabled=yes
+
+- name: start etcd
+  service: name=etcd state=started enabled=yes
+
+- name: start rsyslog
+  service: name=rsyslog state=started enabled=yes
+
+- name: start haproxy
+  service: name=haproxy state=started enabled=yes
+
+- name: start kubelet
+  service: name=kubelet state=started enabled=yes
+
+

@@ -1,0 +1,10 @@
+- name: install default packages for all host
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - yum-utils
+    - vim
+    - htop
+

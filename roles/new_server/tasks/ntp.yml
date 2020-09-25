@@ -1,0 +1,5 @@
+- name: Copy NTP config to remote host
+  template: src=/etc/ansible/roles/new_server/templates/ntp.conf dest=/etc/ntp.conf
+  notify:
+  - restart ntpd
+

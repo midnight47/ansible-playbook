@@ -1,0 +1,18 @@
+- name: change kubernetes API address
+  replace:
+    path: "{{item}}"
+    regexp: "^(.*)server:(.*)$"
+    replace: "    server: https://127.0.0.1:6443"
+
+
+#    replace: "    server: https://'{{ ansible_default_ipv4.address }}':6443"
+
+
+  with_items:
+    - /root/.kube/config
+    - /etc/kubernetes/kubelet.conf
+    - /etc/kubernetes/admin.conf
+    - /etc/kubernetes/scheduler.conf
+    - /etc/kubernetes/controller-manager.conf
+  when: "inventory_hostname in groups['kubermaster']"
+

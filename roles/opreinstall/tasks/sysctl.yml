@@ -1,0 +1,8 @@
+---
+- name: Set sysctl.conf
+  blockinfile:
+    block: "{{ lookup('file', '/etc/ansible/roles/opreinstall/files/sysctl.conf')}}"
+    dest: "/etc/sysctl.conf"
+    backup: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+  tags: sysctl

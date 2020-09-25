@@ -1,0 +1,43 @@
+---
+- name: Set facts etcd
+  set_fact:
+        etcd_check: "{% if ip_addr==etcd1 %}etcd1{% elif ip_addr==etcd2 %}etcd2{% else %}etcd3{% endif %}"
+- import_tasks: install_postgres.yml
+  tags: install postgres package
+  when: inventory_hostname in groups['patroni']
+- import_tasks: install_etcd.yml
+  tags: install etcd package
+  when: inventory_hostname in groups['etcd']
+- import_tasks: add_etcd_config.yml
+  tags: add etcd config
+  when: inventory_hostname in groups['etcd']
+- import_tasks: install_patroni.yml
+  tags: install patroni
+  when: inventory_hostname in groups['patroni']
+- import_tasks: create_patroni_service.yml
+  tags: create patroni service
+  when: inventory_hostname in groups['patroni']
+- import_tasks: add_patroni_config.yml
+  tags: add patroni config
+  when: inventory_hostname in groups['patroni']
+- import_tasks: install_haproxy.yml
+  tags: install haproxy
+  when: inventory_hostname in groups['balance']
+- import_tasks: add_haproxy_config.yml
+  tags: add haproxy config
+  when: inventory_hostname in groups['balance']
+- import_tasks: install_pgbouncer.yml
+  tags: install pgbouncer
+  when: inventory_hostname in groups['balance']
+- import_tasks: add_pgbouncer_config.yml
+  tags: add pgbouncer config
+  when: inventory_hostname in groups['balance']
+- import_tasks: install_keepalived.yml
+  tags: install keepalived
+  when: inventory_hostname in groups['balance']
+- import_tasks: add_keepalived_config.yml
+  tags: add keepalived config
+  when: inventory_hostname in groups['balance']
+
+
+

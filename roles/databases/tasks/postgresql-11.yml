@@ -1,0 +1,68 @@
+- name: Install  REPO postgresql-11
+  yum:
+   name: https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+   state: present
+
+- name: Install postgresql-11
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - postgresql11
+    - postgresql11-server 
+    - postgresql11-contrib 
+    - postgresql11-libs
+
+- name: initialize postgresql
+  command: /usr/pgsql-11/bin/postgresql-11-setup initdb
+
+- name: Add pg_hba for postgresql-11
+  template:
+    src=/etc/ansible/roles/databases/templates/pg_hba.conf
+    dest=/var/lib/pgsql/11/data/pg_hba.conf
+
+- name: add peer/trust access, for change password
+  blockinfile:
+    dest: /var/lib/pgsql/11/data/pg_hba.conf
+    marker: "#{mark} ANSIBLE MANAGED BLOCK for add parameters to change password postgres"
+    block: |
+        local   all             all                                     peer
+        host    all             all            all                      trust
+    state: present
+
+- name: Start the postgresql-11 service
+  service: name=postgresql-11 state=started enabled=true
+
+- name: Change postgres password for user postgres "{{database_pass}}"
+  shell: |
+    sudo -i -u postgres psql -c "ALTER USER postgres PASSWORD '{{database_pass}}';"
+
+- name: delete peer/trust access, for change password
+  blockinfile:
+    dest: /var/lib/pgsql/11/data/pg_hba.conf
+    marker: "#{mark} ANSIBLE MANAGED BLOCK for add parameters to change password postgres"
+    block: |
+        local   all             all                                     peer
+        host    all             all            all                      trust
+    state: absent
+
+- name: add parameters for work password postgres
+  blockinfile:
+    dest: /var/lib/pgsql/11/data/pg_hba.conf
+    marker: "#{mark} ANSIBLE MANAGED BLOCK for add parameters to change password postgres"
+    block: |
+        local   all             all                                     md5
+        host    all             all             0.0.0.0/0               md5
+    state: present
+
+- name: set postgresql.conf access
+  lineinfile: 
+    dest: /var/lib/pgsql/11/data/postgresql.conf  
+    line: "listen_addresses = '*'" 
+    state: present
+
+- name: restart postgres
+  service: name=postgresql-11  state=restarted
+
+

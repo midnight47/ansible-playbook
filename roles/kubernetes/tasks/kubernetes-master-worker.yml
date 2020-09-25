@@ -1,0 +1,93 @@
+- name: ADD kubernetes master
+  become: yes
+  become_user: root
+  command: "{{ token_kubermaster.stdout}}"
+  when: "inventory_hostname in groups['kubermaster']" 
+
+- name: create home, copy admin.conf, chown owner of /root/.kube/
+  become: yes
+  become_user: root
+  shell: "{{item}}"
+  with_items:
+    - "mkdir -p /root/.kube"
+    - "cp -i /etc/kubernetes/admin.conf /root/.kube/config"
+    - "chown root:root /root/.kube/config"
+    - "chown root:root /etc/kubernetes/pki"
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: ADD kubernetes worker
+  become: yes
+  become_user: root
+  command: "{{ token_kuberworker.stdout}}"
+  when: "inventory_hostname in groups['kuberworker']"
+
+- name: change kubernetes API address
+  replace:
+    path: "{{item}}"
+    regexp: "^(.*)server:(.*)$"
+    replace: "    server: https://127.0.0.1:6443"
+  with_items:
+    - /root/.kube/config
+    - /etc/kubernetes/kubelet.conf
+    - /etc/kubernetes/admin.conf
+    - /etc/kubernetes/scheduler.conf
+    - /etc/kubernetes/controller-manager.conf
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: Restart kubelet and docker on master
+  service: 
+    name: "{{item}}" 
+    state: restarted 
+  with_items:
+    - kubelet
+    - docker
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: Delete files with result of initial, tokens and bash script on the {{first_master_ip}}
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - /root/token.txt
+    - /root/shell-for-kuber.sh
+    - /root/token-master.txt
+    - /root/token-worker.txt
+    - /root/kub.yaml
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+
+
+- name: PROXY ----- add proxy to /etc/environment  for download calico
+  blockinfile:
+    dest: /etc/environment
+    block: |
+      export http_proxy="{{ http_proxy }}"
+      export https_proxy="{{ http_proxy }}"
+    state: present
+  when: proxy
+
+- name: Download calico network
+  get_url:
+    url: https://docs.projectcalico.org/manifests/calico.yaml
+    dest: /root/calico.yaml
+    mode: 0440
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: deploy calico network /root/calico.yaml
+  shell: kubectl apply -f /root/calico.yaml
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+
+
+
+#- name: TOKENS for add master and worker
+#  debug:
+#   msg:
+#   - "{{ token_kubermaster.stdout_lines }}"
+#   - "{{ token_kuberworker.stdout_lines }}"
+#  delegate_to: "{{first_master_ip}}"
+#  run_once: true
+

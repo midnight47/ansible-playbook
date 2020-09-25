@@ -1,0 +1,6 @@
+- name: install repo grlusterfs
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - centos-release-gluster5.noarch

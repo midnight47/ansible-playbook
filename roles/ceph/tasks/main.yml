@@ -1,0 +1,50 @@
+---
+- import_tasks: proxy-add.yml
+  tags: proxy-add
+  when: proxy
+- import_tasks: removecephrepo.yml
+  tags: removecephrepoifexist
+- import_tasks: installepelrepo.yml 
+  tags: epel
+- import_tasks: installcephrepo.yml
+  tags: cephrepo
+- import_tasks: add-to-hosts.yml
+  tags: /etc/hosts
+- import_tasks: addusers.yml
+  tags: adduserceph
+- import_tasks: copy-ssh-key.yml
+  tags: ssh-key
+- import_tasks: create-home-dir.yml
+  tags: create-dir
+- import_tasks: install-packpages.yml
+  tags: install-default-packpage
+- import_tasks: renamerepo.yml
+  tags: rename-ceph-repo
+- import_tasks: create-ceph-cluster.yml
+  tags: createcephcluster
+- import_tasks: add-ceph-conf.yml
+  tags: add-ceph
+- import_tasks: install-ceph-cluster.yml
+  tags: installcephcluster
+- import_tasks: mon-initial.yml
+  tags: moninitial
+- import_tasks: osd-create.yml
+  tags: osdcreate
+- import_tasks: add-node-to-monitoring.yml
+  tags: addnodetomonitoring
+- import_tasks: copy-key-conf-file.yml
+  tags: copykeyconffile
+- import_tasks: mgr-create.yml
+  tags: mgrcreate
+- import_tasks: ceph-client.yml
+  tags: cephclient
+- import_tasks: pool-create.yml
+  tags: poolcreate
+- import_tasks: proxy-delete.yml
+  tags: proxy-delete
+  when: proxy
+- import_tasks: start_and_install_services.yml
+  tags: start_services
+
+
+

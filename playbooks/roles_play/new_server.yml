@@ -1,0 +1,14 @@
+---
+- hosts: glusterfs
+  become: true
+  ignore_errors: yes
+  become_method: sudo
+  gather_facts: yes
+  vars:
+   - proxy: false
+   - proxyIP: "9.9.9.9:3128"
+  roles:
+   - new_server
+#  tasks:
+#  - include_role:
+#     name: docker_docker_compose

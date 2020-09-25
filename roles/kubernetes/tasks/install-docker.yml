@@ -1,0 +1,54 @@
+- name: Set var for install docker and docker-compose
+  set_fact:
+    docker_package_state: "latest"
+    docker_install_compose: "True"
+    docker_compose_version: "1.22.0"
+    docker_compose_path: "/usr/local/bin/docker-compose"
+
+- name: Install Docker
+  package:
+   name: docker-ce
+   state: latest
+  become: yes
+  notify:
+   - Restart docker
+
+- name: Make sure DOCKER is started up
+  service: name=docker state=started enabled=yes
+
+- name: Copy the template to /etc/docker/daemon.json
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/daemon.json
+    dest: /etc/docker/daemon.json
+
+- name: restarted docker
+  service: name=docker state=restarted enabled=yes
+
+- name: Check current docker-compose version.
+  command: docker-compose --version
+  register: docker_compose_current_version
+  changed_when: false
+  failed_when: false
+
+- name: Delete existing docker-compose version if it's different.
+  file:
+    path: "{{ docker_compose_path }}"
+    state: absent
+  when: >
+    docker_compose_current_version.stdout is defined
+    and docker_compose_version not in docker_compose_current_version.stdout
+
+- name: Install Docker Compose (if configured).
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+    dest: "{{ docker_compose_path }}"
+    mode: 0755
+
+- name: install docker-compose stuff with pip
+  pip:
+    name: " {{ item }}"
+  with_items:
+    - pyyaml
+    - docker-py
+
+

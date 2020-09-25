@@ -1,0 +1,6 @@
+- name: Add '{{ user_shell }}' to /etc/shells
+  lineinfile:
+    dest: /etc/shells
+    state: present
+    line: '{{ user_shell }}'
+

@@ -1,0 +1,6 @@
+- name: Add '{{ ansible_default_ipv4.address }}' to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    line: '{{ ansible_default_ipv4.address }} {{ ansible_hostname }}'
+

@@ -1,0 +1,23 @@
+- name: Create Gluster volume "{{ name_of_gluster_tom }}".
+  gluster_volume:
+    state: present
+    name: "{{ name_of_gluster_tom }}"
+    brick: "{{ dir_gluster_master }}/gv01"
+    replicas: "{{ replica_number }}"
+    cluster: "{{ groups.glustermaster | join(',') }}"
+    transport: tcp
+    rebalance: yes
+    force: yes
+  become: true
+  become_user: root
+  become_method: sudo
+  run_once: true
+  ignore_errors: true
+  when: inventory_hostname in groups['glustermaster']
+
+- name: start gluster volume "{{ name_of_gluster_tom }}"
+  gluster_volume:
+    state: started
+    name: "{{ name_of_gluster_tom }}"
+  run_once: true
+  when: inventory_hostname in groups['glustermaster']

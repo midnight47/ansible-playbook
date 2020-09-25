@@ -1,0 +1,198 @@
+---
+- import_tasks: add-proxy.yml
+  tags: add proxy
+  when: proxy
+- import_tasks: repo.yml
+  tags: repo
+- import_tasks: check-packpages.yml
+  tags: check-packpages
+- import_tasks: install-packpages.yml
+  tags: packpages
+
+- import_tasks: mysql-5.5.yml
+  tags: mysql-5.5
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql55' }}"
+    - "{{ installdatabase }}"
+
+
+- import_tasks: mysql-5.6.yml
+  tags: mysql-5.6
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql56' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mysql-5.7.yml
+  tags: mysql-5.7
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql57' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mysql-8.0.yml
+  tags: mysql-8.0
+  when:
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "{{ database == 'mysql80' }}"
+    - "{{ installdatabase }}"
+
+
+
+- import_tasks: mariadb-5.5.yml
+  tags: mariadb-5.5
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb55' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-10.2.yml
+  tags: mariadb-10.2
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_2' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-10.3.yml
+  tags: mariadb-10.3
+  when:
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_3' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-10.4.yml
+  tags: mariadb-10.4
+  when:
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_4' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: mariadb-10.5.yml
+  tags: mariadb-10.5
+  when:
+    - "'mariadb-server' not in ansible_facts.packages"
+    - "'MariaDB-server' not in ansible_facts.packages"
+    - "'mysql-community-server' not in ansible_facts.packages"
+    - "{{ database == 'mariadb10_5' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-9.2.yml
+  tags: postgresql-9.2
+  when:
+#    - "inventory_hostname in groups['mysql']"
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-9.2' }}"
+    - "{{ installdatabase }}"
+
+
+- import_tasks: postgresql-9.4.yml
+  tags: postgresql-9.4
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-9.4' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-9.5.yml
+  tags: postgresql-9.5
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-9.5' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-9.6.yml
+  tags: postgresql-9.6
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-9.6' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-10.yml
+  tags: postgresql-10
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-10' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-11.yml
+  tags: postgresql-11
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-11' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: postgresql-12.yml
+  tags: postgresql-12
+  when:
+    - "'postgresql' not in ansible_facts.packages"
+    - "'postgresql94' not in ansible_facts.packages"
+    - "'postgresql95' not in ansible_facts.packages"
+    - "'postgresql96' not in ansible_facts.packages"
+    - "'postgresql10' not in ansible_facts.packages"
+    - "'postgresql11' not in ansible_facts.packages"
+    - "'postgresql12' not in ansible_facts.packages"
+    - "{{ database == 'postgresql-12' }}"
+    - "{{ installdatabase }}"
+
+- import_tasks: delete-proxy.yml
+  tags: delete proxy
+  when: proxy
+
+

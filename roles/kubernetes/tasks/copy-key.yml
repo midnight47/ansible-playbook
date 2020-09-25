@@ -1,0 +1,41 @@
+- name: Delete directory /etc/ansible/roles/kubernetes/templates/pki on localhost ansible
+  local_action: file path=/etc/ansible/roles/kubernetes/templates/pki state=absent
+  run_once: true
+
+- name: Create directory on /etc/ansible/roles/kubernetes/templates/pki on localhost ansible
+  local_action: file path=/etc/ansible/roles/kubernetes/templates/pki state=directory  mode=0755
+  run_once: true
+
+- name: Create directory /etc/kubernetes/pki
+  file:
+    path: /etc/kubernetes/pki
+    state: directory
+    mode: '0755' 
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: CHECK all files on the "{{first_master_ip}}" in directory /etc/kubernetes/pki/
+  shell: ls /etc/kubernetes/pki/
+  register: list_of_key
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: COPY all files from the "{{first_master_ip}}" in directory /etc/kubernetes/pki/ to localhost ansible
+  fetch:
+    src: /etc/kubernetes/pki/{{item}}
+    dest: /etc/ansible/roles/kubernetes/templates/pki/
+  with_items: "{{list_of_key.stdout_lines}}" 
+  delegate_to: "{{first_master_ip}}"
+  run_once: true
+
+- name: Copy all files from /etc/ansible/roles/kubernetes/templates/pki/{{first_master_ip}}/etc/kubernetes/pki/ to /etc/kubernetes/pki
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/pki/{{first_master_ip}}/etc/kubernetes/pki/{{item}}
+    dest: /etc/kubernetes/pki/{{item}}
+  with_items: "{{list_of_key.stdout_lines}}"
+  when: "inventory_hostname in groups['kubermaster']"
+
+- name: Delete directory /etc/ansible/roles/kubernetes/templates/pki on localhost ansible
+  local_action: file path=/etc/ansible/roles/kubernetes/templates/pki state=absent
+  run_once: true
+
+

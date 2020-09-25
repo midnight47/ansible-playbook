@@ -1,0 +1,8 @@
+  - name: put haproxy_config
+    template:
+      src: ../templates/haproxy.cfg
+      dest: /etc/haproxy/haproxy.cfg
+      backup: yes
+#  - name: restart haproxy service
+#    service: name=haproxy state=restarted enabled=yes
+#    tags: haproxy

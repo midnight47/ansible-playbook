@@ -1,0 +1,6 @@
+---
+- name: start nfs
+  service: name=nfs state=started enabled=yes
+- name: start rpcbind
+  service: name=rpcbind state=restarted enabled=yes
+

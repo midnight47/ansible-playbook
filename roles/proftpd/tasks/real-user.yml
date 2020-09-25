@@ -1,0 +1,25 @@
+- name: add real user for ftp "{{ user_name }}" and home dir "{{ user_dir }}"
+  user:
+    name: "{{ user_name }}"
+    shell: "{{ user_shell }}"
+    home: "{{ user_dir }}"
+    password: "{{ user_pass | password_hash('sha512') }}"
+    state: present
+
+- name: change /etc/proftpd.conf if it was set for virtual user
+  replace:
+      dest: /etc/proftpd.conf
+      regexp: '^#AuthOrder'
+      replace: 'AuthOrder'
+
+- name: remove parameters from config if it use vurtual user 
+  blockinfile:
+    dest: /etc/proftpd.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK config-virtual-user"
+    block: |
+        RequireValidShell off
+        AuthUserFile /etc/proftpd.d/ftpd.passwd
+        AuthPAM off
+        LoadModule mod_auth_file.c
+        AuthOrder mod_auth_file.c
+    state: absent

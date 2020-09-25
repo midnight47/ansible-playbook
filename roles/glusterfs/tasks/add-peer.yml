@@ -1,0 +1,18 @@
+- name: Check if Gluster volumes already exist.
+  shell:
+    cmd: gluster volume info
+  run_once: true
+  changed_when: false
+  register: gluster_volume_info
+  when: inventory_hostname in groups['glustermaster']
+
+
+- name: Connect to Gluster peers.
+  shell: 
+    cmd: "gluster peer probe {{ item }}"
+  run_once: true
+  register: gluster_peer_probe
+  changed_when: "'already in peer list' not in gluster_peer_probe.stdout"
+  failed_when: false
+  with_items: "{{groups.glustermaster}}"
+  when: "'Volume Name: {{ name_of_gluster_tom }}' not in gluster_volume_info.stdout and inventory_hostname in groups['glustermaster']"

@@ -1,0 +1,24 @@
+- set_fact:
+    from_this_ip_will_install_ceph: "{{ groups.cephmaster[0] }}"
+
+
+- name: copy id_rsa.pub FROM all hosts to local ansible template
+  fetch:
+    src: /home/ceph/.ssh/id_rsa.pub
+    dest: /etc/ansible/roles/ceph/templates/
+
+- name: Set authorized key took from file for users
+  authorized_key:
+        user: ceph
+        state: present
+        key: "{{ lookup('file', '/etc/ansible/roles/ceph/templates/{{ from_this_ip_will_install_ceph }}/home/ceph/.ssh/id_rsa.pub') }}"
+
+- name: Set KNOWN HOSTS 
+  shell: 
+    cmd: "ssh-keyscan -t rsa {{ hostvars[item].ansible_hostname }} >> /home/ceph/.ssh/known_hosts"
+  with_items: '{{ groups.ceph }}'
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+  become: yes
+  become_user: ceph
+

@@ -1,0 +1,37 @@
+- name: Make sure NTP is started up
+  service: name=ntpd state=started enabled=yes
+
+- name: force ntp update
+  shell: "systemctl stop ntpd"
+
+- name: update ntp
+  shell: "ntpd -q"
+
+- name: start ntp
+  shell: "systemctl start ntpd"
+
+
+- name: Create file rbd.conf
+  file:
+    path: /etc/modules-load.d/rbd.conf
+    state: touch
+    mode: 0644
+
+
+- name: Add rbd in /etc/modules-load.d/rbd.conf
+  lineinfile:
+    dest: "/etc/modules-load.d/rbd.conf"
+    line: rbd
+    state: present
+
+- name: Start and enable ceph target
+  service: name="{{item}}" state=started enabled=yes
+  with_items:
+  - ceph-mds.target
+  - ceph-mgr.target 
+  - ceph-mon.target 
+  - ceph-osd.target 
+  - ceph-radosgw.target 
+  - ceph.target
+  - rbdmap.service
+

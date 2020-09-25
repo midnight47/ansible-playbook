@@ -1,0 +1,5 @@
+---
+- name: enable and start proftpd
+  service: name=proftpd state=restarted enabled=yes
+- name: restart proftpd
+  service: name=proftpd state=restarted

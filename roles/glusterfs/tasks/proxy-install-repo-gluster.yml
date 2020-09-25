@@ -1,0 +1,10 @@
+- name: install repo grlusterfs
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - centos-release-gluster5.noarch
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+

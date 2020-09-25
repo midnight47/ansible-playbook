@@ -1,0 +1,56 @@
+---
+- import_tasks: add-to-hosts.yml
+  tags: add hostnames to hosts
+- import_tasks: check-packpage.yml
+  tags: check
+- import_tasks: add-repo-docker.yml
+  tags: Add repo docker
+  when: not proxy
+- import_tasks: docker-preinstall.yml
+  tags: install packpage fo docker
+  when: not proxy
+- import_tasks: install-docker.yml
+  tags: install docker
+  when: not proxy
+- import_tasks: docker-compose-preinstall.yml
+  tags: install packpage fo docker-compose
+  when: not proxy
+- import_tasks: install-docker-compose.yml
+  tags: install docker-compose
+  when: not proxy
+- import_tasks: start-docker.yml
+  tags: start docker
+  when: not proxy
+
+- import_tasks: proxy-add-repo-docker.yml
+  tags: Add repo docker with proxy
+  when: proxy
+- import_tasks: proxy-docker-preinstall.yml
+  tags: install packpage fo docker
+  when: proxy
+- import_tasks: proxy-install-docker.yml
+  tags: install docker
+  when: proxy
+- import_tasks: proxy-docker-compose-preinstall.yml
+  tags: install packpage fo docker-compose
+  when: proxy
+- import_tasks: proxy-install-docker-compose.yml
+  tags: install docker-compose
+  when: proxy
+- import_tasks: docker_proxy.yaml
+  tags: use docker proxy
+  when: proxy
+- import_tasks: start-docker.yml
+  tags: start docker
+  when: proxy
+
+- import_tasks: check-packpage.yml
+  tags: check
+- import_tasks: check-swarm.yml
+  tags: check swarm
+- import_tasks: swarm-initiate-token.yml
+  tag: initiate-token
+- import_tasks: swarm-add-master.yml
+  tag: add master
+- import_tasks: swarm-add-worker.yml
+  tag: add worker

@@ -1,0 +1,28 @@
+- name: Installing GitLab-Muli-Runner
+  become: yes
+  yum:
+    name: gitlab-ci-multi-runner
+    state: present
+    disable_gpg_check: yes
+  tags:
+    - gitlab-ci-multi-runner
+
+- name: Creates directory /var/opt/gitlab-runner
+  file:
+    path: /var/opt/gitlab-runner
+    state: directory
+    mode: 755
+
+- name: ADD user gitlab-runner
+  user:
+    name: gitlab-runner
+    group: gitlab-runner
+
+- name: gitlab-multiranner start
+  become: yes
+  shell: gitlab-ci-multi-runner start
+  tags:
+    - gitlab-ci-multi-runner
+
+
+

@@ -1,0 +1,19 @@
+---
+- name: Create directory "{{ dir_nfs_master }}" on nfsmaster
+  file:
+    path: "{{ dir_nfs_master }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  when: inventory_hostname in groups['nfsmaster']
+
+- name: Create directory "{{ dir_nfs_client }}" on nfsclient
+  file:
+    path: "{{ dir_nfs_client }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  when: inventory_hostname in groups['nfsclient']
+

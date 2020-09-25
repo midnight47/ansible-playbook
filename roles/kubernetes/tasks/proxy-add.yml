@@ -1,0 +1,17 @@
+- name: PROXY ----- changes for install kubernetes through proxy "{{ http_proxy }}"
+  lineinfile: dest=/etc/yum.conf state=present regexp="{{ http_proxy }}"
+              insertafter=EOF line="proxy={{ http_proxy }}"
+  ignore_errors: yes
+
+
+- name: PROXY ----- add proxy to /etc/environment
+  blockinfile:
+    dest: /etc/environment
+    block: |
+      export http_proxy="{{ http_proxy }}"
+      export https_proxy="{{ http_proxy }}"
+    state: present
+
+
+
+

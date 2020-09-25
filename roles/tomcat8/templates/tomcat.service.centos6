@@ -1,0 +1,29 @@
+#!/bin/bash
+
+export CATALINA_HOME={{ directory_for_tomcat}}/tomcat
+
+service_name="tomcat"
+
+start() {
+ echo "Starting Tomcat ..."
+ /bin/su -s /bin/bash tomcat -c $CATALINA_HOME/bin/startup.sh
+}
+stop() {
+ echo "Stopping Tomcat ..."
+ /bin/su -s /bin/bash tomcat -c $CATALINA_HOME/bin/shutdown.sh
+}
+status() {
+ if (( $(ps -ef | grep -v grep | grep $service_name | wc -l) > 0 )); then
+     echo "$service_name is running!!!"
+ else
+     echo "$service_name is down!!!"
+ fi
+}
+case $1 in
+  start|stop|status) $1;;
+  restart) stop; start;;
+  *) echo "Usage : $0 <start|stop|restart>"; exit 1;;
+esac
+
+exit 0
+

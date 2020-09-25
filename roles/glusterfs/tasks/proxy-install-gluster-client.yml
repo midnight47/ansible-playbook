@@ -1,0 +1,10 @@
+- name: install  grlusterfs client
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - glusterfs-client
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+

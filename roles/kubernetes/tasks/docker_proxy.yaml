@@ -1,0 +1,44 @@
+---
+- name: create dir for .docker and service.d 
+  file:
+   path: "{{item}}"
+   state: directory
+   mode: 0755
+  with_items:
+   - /root/.docker/
+   - /etc/systemd/system/docker.service.d/
+
+- name: copy template for proxy to /root/.docker/config.json
+  template: 
+    src: /etc/ansible/roles/kubernetes/templates/config.json 
+    dest: /root/.docker/config.json  
+    mode: 644
+
+- name: copy template for proxy to /etc/systemd/system/docker.service.d/http-proxy.conf
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/http-proxy.conf
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    mode: 644
+  notify:
+   - Reload systemd
+   - Reload docker
+
+- name: copy bash script for proxy to /etc/systemd/system/docker.service.d/http-proxy.conf
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/docker-proxy.sh
+    dest: /root/docker-proxy.sh
+
+- name: Run bash script /root/docker-proxy.sh  to do change in /etc/systemd/system/docker.service.d/http-proxy.conf 
+  shell: /bin/bash /root/docker-proxy.sh
+
+
+- name: Delete bash script /root/docker-proxy.sh 
+  file:
+    path: /root/docker-proxy.sh
+    state: absent
+
+- name: Restart docker on master
+  service:
+    name: docker
+    state: restarted
+

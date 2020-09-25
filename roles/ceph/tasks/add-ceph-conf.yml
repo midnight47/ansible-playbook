@@ -1,0 +1,8 @@
+- name: add network to ceph.conf
+  lineinfile:
+    dest: "{{ userdir }}ceph.conf"
+    line: public_network = {{ hostvars[from_this_ip_will_install_ceph].ansible_default_ipv4.network }}/24
+    state: present
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+

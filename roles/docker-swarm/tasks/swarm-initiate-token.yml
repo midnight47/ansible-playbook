@@ -1,0 +1,47 @@
+- name: "initialize docker swarm"
+  become: yes
+  become_user: root
+  shell:
+    cmd:  "docker swarm init"
+  run_once: true
+  delegate_to: "{{ first_master_ip }}"
+  when: 
+      - "'docker-ce' in ansible_facts.packages"
+      - "'active' not in check_swarm.stdout_lines"
+      - "'Error' in check_node.stdout_lines"
+
+- name: "Get docker swarm token for master"
+  become: yes
+  become_user: root
+  shell:
+    cmd:  "docker swarm join-token manager 2>&1 | grep 'docker swarm join --token'"
+  delegate_to: "{{ first_master_ip }}"
+  run_once: true
+  register: swarm_master
+  when:
+      - "'docker-ce' in ansible_facts.packages"
+      - "'active' in check_swarm.stdout_lines"
+
+- name: "Get docker swarm token for worker"
+  become: yes
+  become_user: root
+  shell:
+    cmd: "docker swarm join-token worker 2>&1 | grep 'docker swarm join --token'"
+  run_once: true
+  delegate_to: "{{ first_master_ip }}"
+  register: swarm_worker
+  when:
+      - "'docker-ce' in ansible_facts.packages"
+      - "'active' in check_swarm.stdout_lines"
+
+#- name: "Ansible  Print a variable"
+#  debug:
+#    var: "{{item}}"
+#  with_items:
+#    - first_master_ip
+#    - swarm_master.stdout_lines
+#    - swarm_worker.stdout_lines
+
+
+
+

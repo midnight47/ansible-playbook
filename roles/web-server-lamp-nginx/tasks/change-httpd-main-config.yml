@@ -1,0 +1,23 @@
+- name: httpd listen on port {{ httpd_port_if_use_nginx }}
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^Listen 80" line="Listen 8080" state=present
+  notify:
+    - restart httpd
+  when: 
+    - nginx
+    - "inventory_hostname in groups['apache']"
+
+- name: httpd change listen port if nginx absent  
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^Listen 8080" line="Listen 80" state=present
+  notify:
+    - restart httpd
+  when: "inventory_hostname in groups['apache'] and not {{ nginx }}"
+
+- name: httpd servername
+  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp="^#ServerName www.example.com:80" line="ServerName _" state=present
+  notify:
+    - restart httpd
+  when:
+    - nginx
+    - "inventory_hostname in groups['apache']"
+
+

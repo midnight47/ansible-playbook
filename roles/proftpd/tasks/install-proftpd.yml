@@ -1,0 +1,10 @@
+- name: Installing proftpd
+  become: yes
+  yum:
+    name:  "{{item}}"
+    state: present
+  with_items:
+    - proftpd
+    - proftpd-utils
+  notify:
+    - enable and start proftpd

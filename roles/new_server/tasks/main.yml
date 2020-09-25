@@ -1,0 +1,17 @@
+---
+- import_tasks: installepelrepo.yml 
+  tags: epel
+- import_tasks: upgradesystem.yml
+  tags: upgrade
+- import_tasks: defaultpackages.yml
+  tags: default
+- import_tasks: ssh.yml
+  tags: sshd
+- import_tasks: ntp.yml 
+  tags: ntp
+- import_tasks: sudoers.yml 
+  tags: sudo
+- import_tasks: addusers.yml 
+  tags: adduser
+- import_tasks: selinuxDisable.yaml
+  tags: disable Selinux

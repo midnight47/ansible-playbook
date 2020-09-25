@@ -1,0 +1,72 @@
+- name: Install default packages
+  yum:
+        name: "{{item}}"
+        state: present
+  with_items:
+        - yum-utils 
+        - yum-plugin-priorities
+        - device-mapper-persistent-data
+        - lvm2
+        - python2-pip
+        - rsyslog
+        - ntp
+
+- name: Make sure NTP is started up
+  service: name=ntpd state=started enabled=yes
+
+- name: force ntp update "systemctl stop ntpd"
+  shell: "systemctl stop ntpd"
+- name: update ntp "ntpd -q"
+  shell: "ntpd -q"
+  when: not proxy
+- name: start ntp "systemctl start ntpd"
+  shell: "systemctl start ntpd"
+
+- name: purge docker-compose package
+  yum:
+    name: docker-compose
+    state: removed
+
+- name: install pip
+  yum:
+    name: python-pip
+
+- name: install the package, force upgrade
+  pip:
+    name: pip
+    executable: pip
+    state: latest
+
+- name: Check that the /etc/sysctl.d/k8s.conf exist
+  stat:
+    path: /etc/sysctl.d/k8s.conf
+  register: stat_result
+
+- name: Copy the template /etc/sysctl.d/k8s.conf , if it doesnt exist already
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/k8s.conf
+    dest: /etc/sysctl.d/k8s.conf
+  when: stat_result.stat.exists == False
+
+- name: enable forward
+  command: sysctl -p
+
+# Установка/настройка rsyslog 
+- name: Delete SYSLOGD_OPTIONS from /etc/sysconfig/rsyslog
+  lineinfile:
+    path: /etc/sysconfig/rsyslog
+    state: absent
+    regexp: '^SYSLOGD_OPTIONS'
+
+- name: ADD SYSLOGD_OPTIONS from /etc/sysconfig/rsyslog
+  lineinfile:
+    path: /etc/sysconfig/rsyslog
+    state: present
+    line: 'SYSLOGD_OPTIONS="-c 2 -r"'
+
+- name: ADD /etc/rsyslog.conf
+  template:
+    src: /etc/ansible/roles/kubernetes/templates/rsyslog.conf
+    dest: /etc/rsyslog.conf
+  notify:
+   - start rsyslog

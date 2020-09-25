@@ -1,0 +1,19 @@
+- name: Add users "{{ user }}"
+  user:
+    name: "{{ user }}"
+    shell: /bin/bash
+    append: yes
+    password: "{{ user_pass | password_hash('sha512') }}"
+    home: "{{ home_dir }}"
+    state: present
+  when: "inventory_hostname in groups['apache']"
+
+- name: Create homedir "{{ home_dir }}{{domain}}/"
+  file:
+    path: "{{ home_dir }}/{{domain}}/"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+    group: "{{ user }}"
+  when: "inventory_hostname in groups['apache']"
+
