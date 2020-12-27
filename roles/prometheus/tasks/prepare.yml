@@ -1,0 +1,53 @@
+---
+- name: install python-firewall
+  yum:
+    name:  "{{item}}"
+    state: present
+  with_items:
+    - python-firewall
+  when:
+    ansible_os_family == "RedHat"
+
+ 
+- name: Security Settings For RedHat
+  block:
+    - name: Allow Ports
+      firewalld:
+        port: "{{ item }}"
+        permanent: true
+        state: enabled
+      loop: [ '9090/tcp', '9093/tcp', '9094/tcp', '9100/tcp', '9094/udp' ]
+      notify:
+        - firewalld systemd restart
+ 
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+ 
+    - name: Stop SELinux
+      shell: setenforce 0
+  when:
+    ansible_os_family == "RedHat"
+ 
+- name: Security Settings For Debian
+  block:
+    - name: Allow TCP Ports
+      iptables:
+        chain: INPUT
+        rule_num: '1'
+        action: insert
+        protocol: tcp
+        jump: ACCEPT
+        destination_port: "{{ item }}"
+      loop: [ '9090', '9093', '9094', '9100' ]
+ 
+    - name: Allow UDP Ports
+      iptables:
+        chain: INPUT
+        rule_num: '1'
+        action: insert
+        protocol: udp
+        jump: ACCEPT
+        destination_port: '9094'
+  when:
+    ansible_os_family == "Debian"

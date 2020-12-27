@@ -1,0 +1,8 @@
+#- name: Prepare For Install Prometheus
+#  include_tasks: tasks/prepare.yml
+ 
+- name: Install Prometheus
+  include_tasks: tasks/install_prometheus.yml
+ 
+- name: Install Alertmanager
+  include_tasks: tasks/install_alertmanager.yml

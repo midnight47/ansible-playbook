@@ -1,0 +1,8 @@
+- hosts: 192.168.1.170
+  user: ansible
+  become: true
+  become_method: sudo
+  become_user: root
+  roles:
+    - role: prometheus
+      tags: prom

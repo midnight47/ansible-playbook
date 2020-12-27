@@ -1,0 +1,9 @@
+ 
+- name: firewalld systemd restart
+  systemd:
+    name: firewalld
+    state: reloaded
+ 
+- name: systemd reload
+  systemd:
+    daemon_reload: yes

@@ -1,0 +1,57 @@
+---
+ 
+- name: Create User Alertmanager
+  user:
+    name: alertmanager
+    create_home: no
+    shell: /bin/false
+ 
+- name: Create Directories For Alertmanager
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+  loop:
+    - '/tmp/alertmanager'
+    - '/etc/alertmanager'
+    - '/var/lib/prometheus/alertmanager'
+ 
+- name: Download And Unzipped Alertmanager
+  unarchive:
+    src: https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz
+    dest: /tmp/alertmanager
+    creates: /tmp/alertmanager/alertmanager-{{ alertmanager_version }}.linux-amd64
+    remote_src: yes
+ 
+- name: Copy Bin Files From Unzipped to Alertmanager
+  copy: 
+    src: /tmp/alertmanager/alertmanager-{{ alertmanager_version }}.linux-amd64/{{ item }}
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: preserve
+    owner: alertmanager
+    group: alertmanager
+  loop: [ 'alertmanager', 'amtool' ]
+ 
+- name: Copy Conf File From Unzipped to Alertmanager
+  copy: 
+    src: /tmp/alertmanager/alertmanager-{{ alertmanager_version }}.linux-amd64/alertmanager.yml
+    dest: /etc/alertmanager/
+    remote_src: yes
+    mode: preserve
+    owner: alertmanager
+    group: alertmanager
+ 
+- name: Create File for Alertmanager Systemd
+  template:
+    src=templates/alertmanager.service
+    dest=/etc/systemd/system/
+  notify:
+    - systemd reload
+ 
+- name: Systemctl Alertmanager Start
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: yes

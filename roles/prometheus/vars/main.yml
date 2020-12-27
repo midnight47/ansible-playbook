@@ -1,0 +1,4 @@
+---
+# vars file for prometheus
+prometheus_version : 2.23.0
+alertmanager_version : 0.21.0
