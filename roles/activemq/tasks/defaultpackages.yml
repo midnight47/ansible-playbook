@@ -16,8 +16,16 @@
       - "'java-1.8.0-openjdk' not in ansible_facts.packages"
       - "'jdk1.8' not in ansible_facts.packages"
 
+
+- name: install wget
+  yum: 
+    name: wget 
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+
 - name: download Oracle JDK
-  shell: "cd {{ directory_for_activemq }} && wget --header 'Cookie: oraclelicense=accept-securebackup-cookie' wget --header 'Cookie: oraclelicense=accept-securebackup-cookie' https://download.oracle.com/otn-pub/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.rpm"
+  shell: "cd {{ directory_for_activemq }} &&  wget --header 'Cookie: oraclelicense=accept-securebackup-cookie' https://download.oracle.com/otn-pub/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.rpm"
   args:
      creates: "{{ directory_for_activemq }}/jdk-8u281-linux-x64.rpm"
   when: ansible_os_family == 'RedHat'
