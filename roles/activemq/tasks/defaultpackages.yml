@@ -1,0 +1,78 @@
+- name: "Check java installed"
+  package_facts:
+   manager: "auto"
+
+- name: "if java installed all OK"
+  debug:
+   msg: "Packpage FOUND and all ok"
+  when: "'java' in ansible_facts.packages or 'openjdk' in ansible_facts.packages or 'java-1.8.0-openjdk' in ansible_facts.packages or 'jdk1.8' in ansible_facts.packages"
+
+- name: "java NOT installed"
+  debug:
+   msg: "Packpage NOT installed"
+  when: 
+      - "'java' not in ansible_facts.packages" 
+      - "'openjdk' not in ansible_facts.packages" 
+      - "'java-1.8.0-openjdk' not in ansible_facts.packages"
+      - "'jdk1.8' not in ansible_facts.packages"
+
+- name: download Oracle JDK
+  shell: "cd {{ directory_for_activemq }} && wget --header 'Cookie: oraclelicense=accept-securebackup-cookie' wget --header 'Cookie: oraclelicense=accept-securebackup-cookie' https://download.oracle.com/otn-pub/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.rpm"
+  args:
+     creates: "{{ directory_for_activemq }}/jdk-8u281-linux-x64.rpm"
+  when: ansible_os_family == 'RedHat'
+
+- name: Install JAVA RPM jdk-8u281-linux-x64.rpm.
+  yum:
+    name: "{{ directory_for_activemq }}/jdk-8u281-linux-x64.rpm"
+    state: present
+  when: "'java' not in ansible_facts.packages or 'openjdk' not in ansible_facts.packages or 'java-1.8.0-openjdk' not in ansible_facts.packages or 'jdk1.8' not in ansible_facts.packages"
+
+
+
+
+- name: "Check java installed second time"
+  package_facts:
+   manager: "auto"
+
+- name: Add JAVA_HOME to /etc/environment
+  shell: |
+    echo "JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")" | sudo tee -a >> /etc/environment 
+    cat /etc/environment | sort | uniq > /etc/environment2
+    cat /etc/environment2 > /etc/environment
+    rm -rf /etc/environment2
+  when: "'java' in ansible_facts.packages or 'openjdk' in ansible_facts.packages or 'java-1.8.0-openjdk' in ansible_facts.packages or 'jdk1.8' in ansible_facts.packages"
+
+- name: check dir for activemq
+  stat:
+    path: "{{ directory_for_activemq }}/activemq"
+  register: register_name
+
+
+- name: DOWNLOAD apache-activemq-5.14.3-bin.tar.gz
+  get_url:
+    url: https://archive.apache.org/dist/activemq/5.14.3/apache-activemq-5.14.3-bin.tar.gz
+    dest: "{{ directory_for_activemq }}"
+  when: not register_name.stat.exists
+
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+      src: "{{ directory_for_activemq }}/apache-activemq-5.14.3-bin.tar.gz"
+      dest: "{{ directory_for_activemq }}"
+      remote_src: yes
+  when: not  register_name.stat.exists
+
+- name: Move dir and remove archive
+  shell: mv {{ directory_for_activemq }}/apache-activemq-5.14.3 {{ directory_for_activemq }}/activemq && rm -rf {{ directory_for_activemq }}/apache-activemq-5.14.3-bin.tar.gz
+  when: not  register_name.stat.exists
+
+- name: Change permissions on activemq folder
+  file: 
+        dest: "{{ directory_for_activemq }}/activemq"
+        owner: activemq
+        group: activemq
+        mode: u=rwX,g=rX,o=rX 
+        recurse: yes
+
+

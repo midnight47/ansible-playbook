@@ -8,8 +8,3 @@
   notify:
     - start nfs
     - start rpcbind
-  handlers:
-    - name: start nfs
-      service: name=nfs state=started enabled=yes
-    - name: start rpcbind
-      service: name=rpcbind state=started enabled=yes

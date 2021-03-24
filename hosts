@@ -45,9 +45,20 @@
 
 
 
+
+[kub]
+192.168.1.201
+192.168.1.202
+192.168.1.203
+192.168.1.204
+192.168.1.205
+
+
+
 [NOproxy]
 localhost
 127.0.0.1
+192.168.1.190
 
 [swarm:children]
 swarmmaster
@@ -58,42 +69,41 @@ swarmworker
 
 
 
+
+
 [ceph:children]
 cephmaster
 cephclient
 [cephmaster]
+192.168.1.201
+192.168.1.202
+192.168.1.203
 [cephclient]
+192.168.1.201
+192.168.1.202
+192.168.1.203
 
-########################
 [nfs:children]
 nfsmaster
 nfsclient
 [nfsmaster]
 [nfsclient]
-#######################
 
 
-######################
 [glusterfs:children]
 glustermaster
 glusterclient
 [glustermaster]
 [glusterclient]
-#####################
 
-
-
-########################
 [kubernetes:children]
 kubermaster
 kuberworker
 [kubermaster]
 [kuberworker]
-#######################
 
+[minikub]
 
-
-###############################
 [web-server-LAMP:children]
 nginx
 apache
@@ -101,13 +111,9 @@ mysql
 [nginx]
 [apache]
 [mysql]
-###############################
 
 
 
-
-
-#############################
 [patronicluster:children]
 etcd
 patroni
@@ -115,4 +121,14 @@ balance
 [etcd]
 [patroni]
 [balance]
-############################
+
+
+
+[databases]
+192.168.1.201
+192.168.1.202
+192.168.1.203
+192.168.1.177
+192.168.1.170
+134.209.243.59
+194.135.20.129

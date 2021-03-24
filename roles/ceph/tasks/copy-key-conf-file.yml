@@ -1,0 +1,21 @@
+- name: copy config file and keys
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph-deploy admin "{{ hostvars[item].ansible_hostname }}"
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+  with_items: "{{ groups.cephmaster }}"
+
+- name: change rights
+  file:
+    path: /etc/ceph/ceph.client.admin.keyring
+    owner: root
+    group: root
+    mode: '0644'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups.cephmaster }}"
+
+
+

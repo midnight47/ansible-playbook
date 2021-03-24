@@ -1,0 +1,11 @@
+- name: add all node to monitoring
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph-deploy mon add "{{ hostvars[item].ansible_hostname }}" 
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+  with_items: "{{ groups.cephmaster }}"
+
+

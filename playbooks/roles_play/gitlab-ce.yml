@@ -1,5 +1,5 @@
 - name: Task to install  gitlab, gitlab-runner, gitlab-registry
-  hosts: 192.168.1.170
+  hosts: 192.168.1.190
   become: true
   ignore_errors: yes
   become_method: sudo

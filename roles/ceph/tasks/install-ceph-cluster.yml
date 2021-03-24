@@ -1,0 +1,12 @@
+---
+- name: Install ceph-cluster
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph-deploy install "{{ hostvars[item].ansible_hostname }}"
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+  with_items: "{{ groups.ceph }}"
+
+

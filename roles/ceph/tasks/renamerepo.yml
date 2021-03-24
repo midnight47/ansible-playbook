@@ -1,0 +1,7 @@
+- name: check exist repo
+  stat: path=/etc/yum.repos.d/ceph.repo
+  register: ceph_stat
+
+- name: rename ceph.repo to ceph-deploy.repo
+  command: mv /etc/yum.repos.d/ceph.repo /etc/yum.repos.d/ceph-deploy.repo
+  when: ceph_stat.stat.exists

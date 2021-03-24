@@ -21,6 +21,16 @@
         state: present
   when: "'java' not in ansible_facts.packages or 'openjdk' not in ansible_facts.packages or 'java-1.8.0-openjdk' not in ansible_facts.packages"
 
+
+- name: Add JAVA_HOME to /etc/environment
+  shell: |
+    echo "JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")" | sudo tee -a >> /etc/environment
+    cat /etc/environment | sort | uniq > /etc/environment2
+    cat /etc/environment2 > /etc/environment
+    rm -rf /etc/environment2
+  when: "'java' in ansible_facts.packages or 'openjdk' in ansible_facts.packages or 'java-1.8.0-openjdk' in ansible_facts.packages or 'jdk1.8' in ansible_facts.packages"
+
+
 - name: Copy tomcat src to remote host
   copy:
         src: /etc/ansible/roles/tomcat8/templates/apache-tomcat-8.5.64.tar.gz

@@ -1,14 +1,9 @@
 ---
 - name: restart ntpd
   service: name=ntpd state=restarted enabled=yes
-- name: restart rsyslogd
-  service: name=rsyslog state=restarted enabled=yes
-- name: execute iptables-script
-  command: /etc/sysconfig/iptables-script
-- name: start iptables
-  service: name=iptables state=restarted enabled=yes
-- name: restart sshd
-  service: name=sshd state=restarted enabled=yes
-- name: restart tomcat
-  service: name=tomcat state=restarted enabled=yes
+- name: restart keepalived
+  service: name=keepalived state=restarted enabled=yes
+- name: restart haproxy
+  service: name=haproxy state=restarted enabled=yes
+
 

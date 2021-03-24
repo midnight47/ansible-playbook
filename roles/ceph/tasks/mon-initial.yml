@@ -1,0 +1,21 @@
+- name: monitor initial
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph-deploy mon create-initial 
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+
+
+- name: create monitor on other ceph-master
+  become: yes
+  become_user: ceph
+  shell:
+    cmd: ceph-deploy --overwrite-conf mon create "{{ hostvars[item].ansible_hostname }}"
+    chdir: "{{ userdir }}"
+  delegate_to: "{{ from_this_ip_will_install_ceph }}"
+  run_once: true
+  with_items: "{{ groups.cephmaster }}"
+
+

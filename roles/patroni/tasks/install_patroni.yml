@@ -12,33 +12,33 @@
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-  - name: install setuptools
+  - name: install setuptools through proxy "{{ http_proxy }}"
     pip:
       name: setuptools
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
 
-  - name: install the package, force upgrade
+  - name: install the package, force upgrade through proxy "{{ http_proxy }}"
     pip: 
       name: setuptools 
       extra_args: --upgrade
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-  - name: install python packages flake8
+  - name: install python packages flake8 through proxy "{{ http_proxy }}"
     pip: 
       name: "flake8"
     environment:
       http_proxy: '{{ http_proxy }}'
       https_proxy: '{{ https_proxy }}'
-  - name: install python packages psycopg2-binary
+  - name: install python packages psycopg2-binary through proxy "{{ http_proxy }}"
     pip:
       name: "psycopg2-binary"
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-  - name: install python packages urllib3 patroni[etcd]
+  - name: install python packages urllib3 patroni[etcd] through proxy "{{ http_proxy }}"
     pip:
       name: ['urllib3>=1.19.1', 'patroni[etcd]', 'cryptography', 'certifi', 'idna', 'pyOpenSSL']
     environment:

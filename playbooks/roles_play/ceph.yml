@@ -5,11 +5,11 @@
   become_method: sudo
   gather_facts: yes
   vars:
-   - proxy: true  # here use true/false
+   - proxy: false  # here use true/false
    - http_proxy: "http://192.168.1.170:3128"
    - https_proxy: "http://192.168.1.170:3128"
    - user_pass: ceph
-   - userdir: /var/ceph-adminDIR/
+   - userdir: /cephfs/
    - vgname_lvname: ceph/ceph
    - name_pool: rbd
    - pg_num: 128

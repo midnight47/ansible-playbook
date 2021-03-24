@@ -1,0 +1,16 @@
+  - name: yum install Postgres 10
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm      
+      state: present
+  - name: Install PGsql10
+    yum: 
+      name: "{{ packages }}" 
+      state: present
+    vars:
+      packages:
+      - postgresql10
+      - postgresql10-contrib
+      - postgresql10-server
+      - python-psycopg2
+      - repmgr10
+

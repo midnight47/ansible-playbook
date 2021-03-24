@@ -1,0 +1,5 @@
+- name: copy template for ceph
+  template:
+    src: /etc/ansible/roles/ceph/templates/ceph.repo
+    dest: /etc/yum.repos.d/ceph.repo
+    mode: 644

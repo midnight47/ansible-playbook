@@ -5,8 +5,8 @@
   become_method: sudo
   gather_facts: yes
   vars:
-   directory_for_tomcat: /opt
+   directory_for_activemq: /var
   roles:
-   - tomcat8
+   - activemq
 
 

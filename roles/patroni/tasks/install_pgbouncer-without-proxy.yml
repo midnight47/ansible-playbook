@@ -1,0 +1,9 @@
+  - name: install RPM from pgbouncer
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: present
+
+  - name: Install pgbouncer
+    yum:
+      name: pgbouncer
+      state: present

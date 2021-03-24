@@ -1,4 +1,4 @@
-  - name: yum install Postgres 10
+  - name: yum install Postgres 10 through proxy "{{ http_proxy }}"
     yum:
 #      name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-2.noarch.rpm
       name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm      
@@ -6,7 +6,7 @@
     environment:
       http_proxy: "{{ http_proxy }}"
       https_proxy: "{{ https_proxy }}"
-  - name: Install PGsql10
+  - name: Install PGsql10 through proxy "{{ http_proxy }}"
     yum: 
       name: "{{ packages }}" 
       state: present

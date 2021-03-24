@@ -1,0 +1,10 @@
+- name: remove ceph.repo
+  file:
+    path: /etc/yum.repos.d/ceph.repo
+    state: absent
+
+- name: remove ceph-deploy.repo
+  file:
+    path: /etc/yum.repos.d/ceph-deploy.repo
+    state: absent
+

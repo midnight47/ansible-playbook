@@ -1,0 +1,10 @@
+- name: Copy activemq service config to remote host for centos 7
+  template: src=/etc/ansible/roles/activemq/templates/activemq.service dest=/etc/systemd/system/activemq.service
+  notify:
+    - restart activemq
+  when:
+    - ansible_distribution_major_version == "7"
+    - ansible_distribution == "CentOS"
+
+
+

@@ -1,11 +1,14 @@
-  - name: Install keepalived
-    yum:
-      name: keepalived
-      state: present
-  - name: put keepalived service version 2
-    copy:
-      src: ../templates/keepalived
-      dest: /usr/sbin/
-      backup: yes
+- name: Install keepalived
+  yum:
+    name: keepalived
+    state: present
+  notify:
+    - restart keepalived
+
+- name: put keepalived service version 2
+  copy:
+    src: ../templates/keepalived
+    dest: /usr/sbin/
+    backup: yes
 
 

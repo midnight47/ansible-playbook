@@ -1,0 +1,25 @@
+  - name: install pip 
+    yum:
+      name: python-pip
+  - name: install the package, force upgrade
+    pip:
+      name: pip
+      executable: pip
+      state: latest
+  - name: install setuptools
+    pip:
+      name: setuptools
+
+  - name: install the package, force upgrade
+    pip: 
+      name: setuptools 
+      extra_args: --upgrade
+  - name: install python packages flake8
+    pip: 
+      name: "flake8"
+  - name: install python packages psycopg2-binary
+    pip:
+      name: "psycopg2-binary"
+  - name: install python packages urllib3 patroni[etcd]
+    pip:
+      name: ['urllib3>=1.19.1', 'patroni[etcd]', 'cryptography', 'certifi', 'idna', 'pyOpenSSL']

@@ -1,4 +1,7 @@
-  - name: Install haproxy
-    yum:
-      name: haproxy
-      state: present
+- name: Install haproxy
+  yum:
+    name: haproxy
+    state: present
+  notify:
+    - restart haproxy
+

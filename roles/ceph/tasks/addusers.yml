@@ -1,0 +1,11 @@
+- name: add users
+  user:
+        name: "{{ item }}"
+        group: wheel
+        shell: /bin/bash
+        append: yes
+        password: "{{ user_pass | password_hash('sha512') }}"
+        generate_ssh_key: yes
+  with_items:
+        - ceph
+

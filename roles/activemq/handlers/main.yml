@@ -1,0 +1,4 @@
+---
+- name: restart activemq
+  service: name=activemq state=restarted enabled=yes
+

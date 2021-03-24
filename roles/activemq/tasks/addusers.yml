@@ -1,0 +1,18 @@
+- name: Ensure group activemq exists
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - activemq
+
+- name: add user activemq
+  user:
+    name: "{{ item }}"
+    group: activemq
+    shell: /sbin/nologin
+    append: yes
+  with_items:
+    - activemq
+  
+
+
