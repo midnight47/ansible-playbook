@@ -49,8 +49,8 @@
 - import_tasks: check-swarm.yml
   tags: check swarm
 - import_tasks: swarm-initiate-token.yml
-  tag: initiate-token
+  tags: initiate-token
 - import_tasks: swarm-add-master.yml
-  tag: add master
+  tags: add master
 - import_tasks: swarm-add-worker.yml
-  tag: add worker
+  tags: add worker
