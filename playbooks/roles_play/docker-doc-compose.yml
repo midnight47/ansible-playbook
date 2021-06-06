@@ -1,5 +1,5 @@
 ---
-- hosts: 192.168.1.170
+- hosts: 192.168.1.171 192.168.1.172
   become: true
   ignore_errors: yes
   become_method: sudo
@@ -10,7 +10,7 @@
    - https_proxy: "http://192.168.1.179:3128"
    - docker_package_state: latest
    - docker_install_compose: True
-   - docker_compose_version: "1.22.0"
+   - docker_compose_version: "1.25.5"
    - docker_compose_path: /usr/local/bin/docker-compose
   roles:
     - docker_docker_compose

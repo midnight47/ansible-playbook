@@ -20,13 +20,3 @@
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
 
-- name: install docker-compose stuff with pip through proxy "{{ http_proxy }}"
-  pip:
-    name: " {{ item }}"
-  with_items:
-    - pyyaml
-    - docker-py
-#    - docker-compose
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"

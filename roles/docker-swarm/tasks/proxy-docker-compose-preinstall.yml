@@ -4,20 +4,20 @@
     name: docker-compose
     state: removed
 
-- name: PROXY -----  install pip through proxy "{{ http_proxy }}"
-  yum:
-    name: python-pip
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
+#- name: PROXY -----  install pip through proxy "{{ http_proxy }}"
+#  yum:
+#    name: python-pip
+#  environment:
+#    http_proxy: "{{ http_proxy }}"
+#    https_proxy: "{{ https_proxy }}"
 
 
-- name: PROXY -----  install the package, force upgrade through proxy "{{ http_proxy }}"
-  pip:
-    name: pip
-    executable: pip
-    state: latest
-  environment:
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
+#- name: PROXY -----  install the package, force upgrade through proxy "{{ http_proxy }}"
+#  pip:
+#    name: pip
+#    executable: pip
+#    state: latest
+#  environment:
+#    http_proxy: "{{ http_proxy }}"
+#    https_proxy: "{{ https_proxy }}"
 

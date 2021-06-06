@@ -7,7 +7,7 @@
         - yum-plugin-priorities
         - device-mapper-persistent-data
         - lvm2
-        - python2-pip
+#        - python2-pip
         - rsyslog
         - ntp
 
@@ -27,15 +27,15 @@
     name: docker-compose
     state: removed
 
-- name: install pip
-  yum:
-    name: python-pip
+#- name: install pip
+#  yum:
+#    name: python-pip
 
-- name: install the package, force upgrade
-  pip:
-    name: pip
-    executable: pip
-    state: latest
+#- name: install the package, force upgrade
+#  pip:
+#    name: pip
+#    executable: pip
+#    state: latest
 
 - name: Check that the /etc/sysctl.d/k8s.conf exist
   stat:

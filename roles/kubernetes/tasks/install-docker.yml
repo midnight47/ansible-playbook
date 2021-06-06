@@ -2,7 +2,7 @@
   set_fact:
     docker_package_state: "latest"
     docker_install_compose: "True"
-    docker_compose_version: "1.22.0"
+    docker_compose_version: "1.25.5"
     docker_compose_path: "/usr/local/bin/docker-compose"
 
 - name: Install Docker
@@ -44,11 +44,11 @@
     dest: "{{ docker_compose_path }}"
     mode: 0755
 
-- name: install docker-compose stuff with pip
-  pip:
-    name: " {{ item }}"
-  with_items:
-    - pyyaml
-    - docker-py
+#- name: install docker-compose stuff with pip
+#  pip:
+#    name: " {{ item }}"
+#  with_items:
+#    - pyyaml
+#    - docker-py
 
 

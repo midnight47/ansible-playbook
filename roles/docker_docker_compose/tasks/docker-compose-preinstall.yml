@@ -4,12 +4,3 @@
     name: docker-compose
     state: removed
 
-- name: install pip
-  yum:
-    name: python-pip
-
-- name: install the package, force upgrade
-  pip:
-    name: pip
-    executable: pip
-    state: latest

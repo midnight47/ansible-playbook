@@ -18,10 +18,9 @@
     mode: 0755
 
 
-- name: install docker-compose stuff with pip
-  pip:
-    name: " {{ item }}"
-  with_items:
-    - pyyaml
-    - docker-py
-#    - docker-compose
+#- name: install docker-compose stuff with pip
+#  pip:
+#    name: " {{ item }}"
+#  with_items:
+#    - pyyaml
+#    - docker-py
