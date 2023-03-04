@@ -1,3 +1,7 @@
 - name: Copy sudoers to remote host
-  template: src=/etc/ansible/roles/new_server/templates/sudoers dest=/etc/sudoers  mode='440'
+  template: src="{{ role_path }}/templates/sudoers" dest=/etc/sudoers  mode='440'
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
+- name: Copy sudoers to remote host
+  template: src="{{ role_path }}/templates/sudoers_debian" dest=/etc/sudoers  mode='440'
+  when: ansible_distribution == 'Debian'

@@ -2,4 +2,4 @@
   yum:
         name: '*'
         state: latest
-
+  when: ansible_distribution in ['RedHat', 'CentOS']

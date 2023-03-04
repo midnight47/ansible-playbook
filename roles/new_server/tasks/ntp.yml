@@ -1,5 +1,11 @@
 - name: Copy NTP config to remote host
-  template: src=/etc/ansible/roles/new_server/templates/ntp.conf dest=/etc/ntp.conf
+  template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/ntp.conf" dest=/etc/ntp.conf
   notify:
   - restart ntpd
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
+- name: Copy NTP config to remote host
+  template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/ntp.conf" dest=/etc/ntp.conf
+  notify:
+  - restart ntp
+  when: ansible_distribution == 'Debian'

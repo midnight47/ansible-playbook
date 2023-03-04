@@ -3,6 +3,7 @@
         name: "{{item}}"
         state: present
   with_items:
+        - sudo
         - telnet
         - htop
         - bind-utils
@@ -13,6 +14,8 @@
         - ntp
         - libselinux-python
         - wget
+  when: (ansible_distribution_major_version == "7")
+
 
 - name: Install additional packages in Centos/Rhel 7
   yum:
@@ -29,3 +32,36 @@
          state: absent
   when: (ansible_distribution_major_version == "7")
 
+
+
+
+- name: Install default packages debian
+  apt:
+    name:
+      - sudo
+      - telnet
+      - htop
+      - dnsutils
+      - net-tools
+      - vim
+      - nano
+      - tcpdump
+      - ntp
+      - python3-selinux
+      - wget
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: Install additional packages in Debian 11
+  apt:
+    name:
+      - iptables
+      - iptables-persistent
+    state: present
+  when: ansible_distribution == 'Debian' 
+
+- name: Delete ufw service
+  apt:
+    name: ufw
+    state: absent
+  when: ansible_distribution == 'Debian' 
