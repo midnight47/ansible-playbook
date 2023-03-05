@@ -3,6 +3,7 @@
         name: "{{item}}"
         state: present
   with_items:
+        - sshpass
         - sudo
         - telnet
         - htop
@@ -38,6 +39,7 @@
 - name: Install default packages debian
   apt:
     name:
+      - sshpass
       - sudo
       - telnet
       - htop
