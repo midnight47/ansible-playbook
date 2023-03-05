@@ -39,6 +39,7 @@
 - name: Install default packages debian
   apt:
     name:
+      - thin-provisioning-tools
       - sshpass
       - sudo
       - telnet
