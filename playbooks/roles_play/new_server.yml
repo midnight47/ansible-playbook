@@ -1,5 +1,5 @@
 ---
-- hosts: new_servers
+- hosts: all_servers
   become: true
   ignore_errors: yes
   become_method: sudo
