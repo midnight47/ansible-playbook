@@ -1,6 +1,14 @@
 - name: Make sure NFS is started up
   service: name=nfs state=started enabled=yes
+  when: inventory_hostname in groups['nfsmaster'] and ansible_distribution in ['RedHat', 'CentOS']
+
+
+- name: Make sure NFS is started up
+  service: name=nfs-server state=started enabled=yes
+  when: inventory_hostname in groups['nfsmaster'] and ansible_distribution in ['Debian', 'Ubuntu']
+
+
 - name: Make sure rpcbind is started up
   service: name=rpcbind state=restarted enabled=yes
-
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
