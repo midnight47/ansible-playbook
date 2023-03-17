@@ -7,6 +7,7 @@
   vars:
    - dir_nfs_master: /nfs
    - dir_nfs_client: /nfs-client
+   - k8s_nfs_provision: true # if true nfs client directory will not create
   roles:
     - nfs
 #  tasks:
