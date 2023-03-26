@@ -15,13 +15,15 @@ kibanaConfig:
 ingress:
   enabled: true
   ingressClassName: nginx
-  className: "nginx"
   annotations:
-     app.kubernetes.io/name: ingress-nginx
      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
   path: /
   hosts:
     - kibana.test.ru
+  tls:
+    - secretName: tls-kibana
+      hosts:
+        - kibana.test.ru
 
 resources:
   requests:

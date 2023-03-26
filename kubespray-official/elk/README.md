@@ -37,6 +37,11 @@ kubectl create secret -n elk generic elastic-certificates --from-file=elastic-ce
 kubectl create secret -n elk generic elastic-certificate-pem --from-file=elastic-certificate.pem && \
 kubectl create secret -n elk generic elastic-certificate-crt --from-file=elastic-certificate.crt 
 
+openssl pkey -in elastic-certificate.pem -out cert.key
+openssl crl2pkcs7 -nocrl -certfile elastic-certificate.pem | openssl pkcs7 -print_certs -out cert.crt
+
+kubectl create secret tls tls-kibana --namespace elk --key key.key --cert crt.crt
+
 теперь можно ставить:
 root@master1:/etc/ansible/kubespray-official/elk# helm upgrade --install elasticsearch elastic/elasticsearch -n elk -f elastic.yaml
 
