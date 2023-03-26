@@ -30,6 +30,15 @@ nfsclient
 192.168.1.174
 192.168.1.175
 
+Указываем в какой директории у нас будут хранится nfs вольюмы:
+cat /etc/ansible/playbooks/roles_play/nfs.yml
+за это отвечаем переменная:
+   - dir_nfs_master: /nfs
+
+так же необходимо включить переменную:
+   - k8s_nfs_provision: true # при true будет создаваться ТОЛЬКО директория на nfs сервере
+
+
 ставим nfs 
 root@master1:/etc/ansible# ansible-playbook -u root  playbooks/roles_play/nfs.yml --ask-pass
 

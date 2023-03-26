@@ -1,0 +1,38 @@
+---
+elasticsearchHosts: "https://elasticsearch-master:9200"
+elasticsearchCertificateSecret: elastic-certificate-pem
+elasticsearchCertificateAuthoritiesFile: elastic-certificate.pem
+elasticsearchCredentialSecret: elasticsearch-master-credentials
+
+
+kibanaConfig:
+  kibana.yml: |
+    server.ssl.certificate: /usr/share/kibana/config/certs/elastic-certificate.pem
+    server.ssl.enabled: true
+    server.ssl.key: /usr/share/kibana/config/certs/elastic-certificate.pem
+    xpack.security.encryptionKey: "something_at_least_32_characters"
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  className: "nginx"
+  annotations:
+     app.kubernetes.io/name: ingress-nginx
+     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  path: /
+  hosts:
+    - kibana.test.ru
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+serverHost: "0.0.0.0"
+
+protocol: https
+
+
