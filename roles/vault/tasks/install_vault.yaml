@@ -1,0 +1,21 @@
+- name: Install Vault Debian
+  apt:
+    name:
+      - vault
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Install Vault Rhell
+  yum:
+    name:
+      - vault
+    state: latest
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Render vault template
+  ansible.builtin.template:
+    src: vault.hcl.j2
+    dest: "/etc/vault.d/vault.hcl"
+  vars:
+    cluster_addr: "{{ ansible_hostname  }}"
+    api_addr: "{{ ansible_hostname  }}"

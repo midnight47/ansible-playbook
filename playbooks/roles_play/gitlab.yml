@@ -1,7 +1,7 @@
 - name: Task to install  gitlab, gitlab-runner, gitlab-registry
-  hosts: 192.168.1.170
+  hosts: gitlab
   become: true
-  ignore_errors: yes
+  ignore_errors: no
   become_method: sudo
   gather_facts: yes
   vars:
@@ -14,10 +14,3 @@
    - docker_compose_path: /usr/local/bin/docker-compose
   roles:
     - gitlab-gitlab-runner
-
-
-#  remote_user: root
-#  tasks: 
-#    - include: tasks/main.yml
-#  handlers:
-#    - include: handlers/main.yml

@@ -9,9 +9,9 @@
   tags: sshd
 - import_tasks: ntp.yml 
   tags: ntp
-- import_tasks: sudoers.yml 
-  tags: sudo
 - import_tasks: addusers.yml 
   tags: adduser
-- import_tasks: selinuxDisable.yaml
+- import_tasks: sudoers.yml 
+  tags: sudo
+- import_tasks: selinuxDisable.yml
   tags: disable Selinux

@@ -1,0 +1,111 @@
+- name: Enable net.ipv4.ip_forward in sysctl
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_file: "/etc/sysctl.conf"
+    state: present
+    reload: yes
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Configure network
+  command: sysctl -p
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Install keepalived debian
+  apt:
+    name:
+      - keepalived
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Install keepalived rhell
+  yum:
+    name:
+      - keepalived
+    state: present
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Download Keepalived archive
+  get_url:
+    url: https://www.keepalived.org/software/keepalived-2.0.20.tar.gz
+    dest: /tmp/keepalived-2.0.20.tar.gz
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+
+- name: Extract Keepalived archive
+  unarchive:
+    src: /tmp/keepalived-2.0.20.tar.gz
+    dest: /tmp/
+    remote_src: yes
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+
+- name: Change to Keepalived directory
+  become_user: root
+  shell: cd /tmp/keepalived-2.0.20 && ./configure
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+
+- name: Install Keepalived
+  become_user: root
+  shell: cd /tmp/keepalived-2.0.20 && make && make install
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+
+- name: Copy bin file from source server to localhost 
+  ansible.builtin.fetch:
+    src: "/tmp/keepalived-2.0.20/bin/keepalived"
+    dest: "{{ keepalived_bin_dir }}/"
+    flat: yes
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+
+- name: Copy bin file from localhost to other servers
+  ansible.builtin.copy:
+    src: "{{ keepalived_bin_dir }}/keepalived"
+    dest: "/usr/sbin/keepalived"
+  loop: "{{ groups['vault'] }}"
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Create keepalived_script group
+  group:
+    name: keepalived_script
+    state: present  
+
+- name: Create keepalived_script user
+  user:
+    name: keepalived_script
+    groups: keepalived_script
+    append: yes
+    shell: /sbin/nologin
+
+- name: Copy vault-health script
+  copy:
+    src: vault-health
+    dest: /etc/keepalived/vault-health
+    mode: '0755'
+
+- name: Render Keepalived template
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+  notify: Restart Keepalived
+
+- name: Keepalived service
+  service:
+    name: keepalived
+    state: started
+    enabled: yes
+  when: 
+    - inventory_hostname in groups['vault']

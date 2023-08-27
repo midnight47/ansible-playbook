@@ -1,22 +1,85 @@
 - name: Install pre-reqs
-  become: yes
   yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - curl
-    - wget
-    - policycoreutils
-    - pygpgme 
-    - yum-utils
+    name:
+      - curl
+      - wget
+      - policycoreutils
+      - pygpgme 
+      - yum-utils
+      - policycoreutils-python 
+      - openssh-server 
+      - perl
+    state: latest
   tags:
     - pre-reqs
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
+- name: Copy GitLab Repo to remote host
+  uri:
+    url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh
+    dest: /tmp
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-server']
+
+- name: GitLab Repo
+  shell: bash /tmp/script.rpm.sh
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-server']
+
+- name: Copy GitLab-Runner Repo to remote host
+  uri:
+    url: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh
+    dest: /tmp
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-runner']
+
+- name: GitLab-Runner Repo
+  shell: bash /tmp/script.rpm.sh
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-runner']
+
+- name: Install pre-reqs debian
+  apt:
+    name:
+      - curl 
+      - openssh-server 
+      - ca-certificates 
+      - perl
+      - postfix
+    state: present
+  tags:
+    - pre-reqs
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
 
 - name: Copy GitLab Repo to remote host
-  template: src=/etc/ansible/roles/gitlab-gitlab-runner/templates/gitlab.repo.j2 dest=/etc/yum.repos.d/gitlab.repo  mode='440'
+  uri:
+    url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh
+    dest: /tmp
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-server']
+
+- name: GitLab Repo
+  shell: bash /tmp/script.deb.sh
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-server']
 
 - name: Copy GitLab-Runner Repo to remote host
-  template: src=/etc/ansible/roles/gitlab-gitlab-runner/templates/runner-gitlab-runner.repo dest=/etc/yum.repos.d/runner-gitlab-runner.repo  mode='440'
+  uri:
+    url: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh
+    dest: /tmp
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-runner']
 
+- name: GitLab-Runner Repo
+  shell: bash /tmp/script.deb.sh
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-runner']

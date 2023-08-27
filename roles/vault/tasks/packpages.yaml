@@ -1,0 +1,75 @@
+- name: update time 
+  command: "ntpdate 0.debian.pool.ntp.org"
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: ntpd stop
+  service:
+    name: ntpd
+    state: stopped
+    enabled: yes
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: update time 
+  command: "ntpd -gq"
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: ntpd start
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: Install default packages debian
+  apt:
+    name:
+      - unzip 
+      - curl 
+      - gnupg 
+      - software-properties-common 
+      - python3-pip
+      - python3-openssl
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Install default packages rhell
+  yum:
+    name:
+      - yum-utils
+      - curl 
+      - gnupg 
+      - wget
+      - python3-pip
+      - ca-certificates
+      - python-cryptography 
+      - openssl11-libs
+    state: latest
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Check if the file "{{ keepalived_bin_dir }}/keepalived" exists
+  stat:
+    path: "{{ keepalived_bin_dir }}/keepalived"
+  delegate_to: localhost
+  run_once: yes
+  register: localhost_keepalived_exist
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - keepalived
+
+- name: Install packages rhell for configure from source code KEEPALIVED
+  yum:
+    name:
+      - kernel-devel
+      - gcc 
+      - openssl-devel
+      - gcc-c++  
+      - make  
+      - automake
+      - openssl  
+      - openssl-devel
+    state: latest
+  run_once: yes
+  when: 
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - not localhost_keepalived_exist.stat.exists
+    - keepalived

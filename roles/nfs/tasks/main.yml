@@ -1,9 +1,10 @@
 ---
+- import_tasks: hosts.yml
+  tags: hosts
 - import_tasks: installepelrepo.yml 
   tags: epel
 - import_tasks: create-nfs-dir.yml
   tags: create-dir
-  when: not  k8s_nfs_provision
 - import_tasks: install-packpages.yml
   tags: install-default-packpage
 - import_tasks: started-nfs.yml

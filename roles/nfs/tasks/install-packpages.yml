@@ -1,34 +1,29 @@
 - name: install default packages for nfs
   yum:
-    name: "{{item}}"
-    state: present
-  with_items:
+    name:
     - nfs-utils
     - rpcbind
+    state: latest
   notify:
     - start nfs
     - start rpcbind
   when: ansible_distribution in ['RedHat', 'CentOS']
 
-- name: install default packages for nfs client
-  apt:
-    name: "{{item}}"
-    state: present
-  with_items:
-    - nfs-common
-  notify:
-    - start nfs
-  when: ansible_distribution in ['Debian', 'Ubuntu']
-
-
 - name: install default packages for nfs server
   apt:
-    name: "{{item}}"
+    name:
+      - nfs-common
+      - nfs-kernel-server
     state: present
-  with_items:
-    - nfs-common
-    - nfs-kernel-server
   notify:
     - start nfs
   when: inventory_hostname in groups['nfsmaster'] and ansible_distribution in ['Debian', 'Ubuntu']
 
+- name: install default packages for nfs client
+  apt:
+    name:
+      - nfs-kernel-server
+    state: present
+  notify:
+    - start nfs
+  when: ansible_distribution in ['Debian', 'Ubuntu']

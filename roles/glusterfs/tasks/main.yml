@@ -1,4 +1,6 @@
 ---
+- import_tasks: hosts.yml
+  tags: hosts
 - import_tasks: proxy-install-repo-gluster.yml
   tags: proxy gluster repo
   when: proxy

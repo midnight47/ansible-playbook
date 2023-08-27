@@ -46,26 +46,21 @@
 
 
 [all_servers]
-192.168.1.171
-192.168.1.172
-192.168.1.173
-192.168.1.174
-192.168.1.175
-192.168.1.180
-
-[kub]
-192.168.1.201
-192.168.1.202
-192.168.1.203
-192.168.1.204
-192.168.1.205
-
-
+192.168.1.100 
+192.168.1.101 
+192.168.1.102 
+192.168.1.103 
+192.168.1.104 
+192.168.1.105 
+192.168.1.106 
+192.168.1.107 
+192.168.1.108 
+192.168.1.109 
 
 [NOproxy]
-localhost
-127.0.0.1
-192.168.1.190
+# localhost
+# 127.0.0.1
+# 192.168.1.190
 
 [swarm:children]
 swarmmaster
@@ -90,25 +85,26 @@ cephclient
 192.168.1.202
 192.168.1.203
 
+
+
 [nfs:children]
 nfsmaster
 nfsclient
 [nfsmaster]
-192.168.1.180
+nfs-server ansible_host=192.168.1.107
 [nfsclient]
-192.168.1.171
-192.168.1.172
-192.168.1.173
-192.168.1.174
-192.168.1.175
-
+192.168.1.100
+192.168.1.109
 
 
 [glusterfs:children]
 glustermaster
 glusterclient
 [glustermaster]
+glustermaster1 ansible_host=192.168.1.107
+glustermaster2 ansible_host=192.168.1.108
 [glusterclient]
+
 
 [kubernetes:children]
 kubermaster
@@ -137,12 +133,26 @@ balance
 [balance]
 
 
-
 [databases]
 192.168.1.201
-192.168.1.202
-192.168.1.203
-192.168.1.177
-192.168.1.170
-134.209.243.59
-194.135.20.129
+
+[gitlab:children]
+gitlab-server
+gitlab-runner
+[gitlab-server]
+gitlab-server ansible_host=192.168.1.100
+[gitlab-runner]
+gitlab-runner ansible_host=192.168.1.109
+
+
+
+[vault]
+vault1 ansible_host=192.168.1.103
+vault2 ansible_host=192.168.1.104
+vault3 ansible_host=192.168.1.105
+
+[vault:vars]
+virtual_hostname=vault
+virtual_address=192.168.1.110
+
+

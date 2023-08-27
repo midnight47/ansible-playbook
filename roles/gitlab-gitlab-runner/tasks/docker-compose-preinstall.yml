@@ -2,14 +2,11 @@
 - name: purge docker-compose package
   yum:
     name: docker-compose
-    state: removed
+    state: absent
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
-#- name: install pip
-#  yum:
-#    name: python-pip
-
-#- name: install the package, force upgrade
-#  pip:
-#    name: pip
-#    executable: pip
-#    state: latest
+- name: purge docker-compose package
+  apt:
+    name: docker-compose
+    state: absent
+  when: ansible_distribution in ['Debian', 'Ubuntu']

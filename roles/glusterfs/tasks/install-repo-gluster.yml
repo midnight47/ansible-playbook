@@ -1,6 +1,32 @@
 - name: install repo grlusterfs
   yum:
-    name: "{{item}}"
+    name: centos-release-gluster5.noarch
     state: present
-  with_items:
-    - centos-release-gluster5.noarch
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+
+- name: Ensure repository pubkey for GlusterFS is present.
+  apt_key:
+    url: 'https://download.gluster.org/pub/gluster/glusterfs/{{ glusterfs_gpg_key_version }}/rsa.pub'
+    state: present
+  register: glusterfs_pub_key_added
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Get the DEB architecture.
+  command: dpkg --print-architecture
+  changed_when: false
+  register: deb_architecture
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Ensure debian repo is present.
+  apt_repository:
+    repo: "deb https://download.gluster.org/pub/gluster/glusterfs/{{ glusterfs_deb_version }}/Debian/\
+      {% if ansible_distribution_major_version|int >= 11 %}{{ ansible_distribution_major_version }}{% else %}{{ ansible_distribution_release }}{% endif %}/{{ deb_architecture.stdout }}/apt {{ ansible_distribution_release }} \
+      main"
+    state: present
+    filename: gluster
+  register: glusterfs_deb_source_added
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']

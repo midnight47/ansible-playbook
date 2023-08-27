@@ -1,22 +1,28 @@
 - name: Installing GitLab
   become: yes
   yum:
-    name: gitlab-ce
+    name: gitlab-ee
     state: present
     disable_gpg_check: yes
   tags:
     - gitlab
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-server']
 
-#- name: GitLab reconfigure
-#  become: yes
-#  shell: /bin/gitlab-ctl reconfigure
-#  tags:
-#    - gitlab
-#  notify: start_gitlab
+- name: Installing GitLab debian
+  apt:
+    name: gitlab-ee
+    state: present
+  tags:
+    - gitlab
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-server']
 
 - name: Display Password
   debug:
     msg: "Login credentials for the GitLab admin are  root / 5iveL!fe"
   tags:
     - gitlab
-
+  when: inventory_hostname in groups['gitlab-server']

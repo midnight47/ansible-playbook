@@ -1,0 +1,103 @@
+- name: vault service
+  service:
+    name: vault
+    state: started
+    enabled: yes
+  when: 
+    - inventory_hostname in groups['vault']
+
+- name: Create unseal directories
+  file:
+    path: "{{ unseal_keys_dir_output }}"
+    state: directory
+  delegate_to: localhost
+  run_once: yes
+
+- name: Check Vault initialization status
+  shell: vault operator init -status
+  register: vault_init_status
+  ignore_errors: yes
+  failed_when: "vault_init_status.rc != 0"
+  run_once: yes
+
+- name: Print Vault initialization status
+  debug:
+    var: vault_init_status.stdout_lines
+  when: "'Vault is initialized' not in vault_init_status.stdout"
+  run_once: yes
+
+- name: Initialise Vault operator
+  shell: "vault operator init -key-shares=5 -key-threshold=3 -format json"
+  environment:
+    VAULT_ADDR: "https://{{ ansible_hostname }}:8200"
+  register: vault_init_results
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - "'Vault is initialized' not in vault_init_status.stdout"
+
+- name: Parse output of vault init
+  set_fact:
+    vault_init_parsed: "{{ vault_init_results.stdout | from_json }}"
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - "'Vault is initialized' not in vault_init_status.stdout"
+
+- name: Write unseal keys to files
+  copy:
+    dest: "{{ unseal_keys_dir_output }}/unseal_key_{{ item.0 }}"
+    content: "{{ item.1 }}"
+  with_indexed_items: "{{ vault_init_parsed.unseal_keys_hex }}"
+  delegate_to: localhost
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - "'Vault is initialized' not in vault_init_status.stdout"
+
+- name: Write root token to file
+  copy:
+    content: "{{ vault_init_parsed.root_token }}"
+    dest: "{{unseal_keys_dir_output}}/rootkey"
+  delegate_to: localhost
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - "'Vault is initialized' not in vault_init_status.stdout"
+
+- name: Check Vault seal status
+  command: 'vault status -format json'
+  environment:
+    VAULT_ADDR: "https://{{ ansible_hostname }}:8200"
+  register: vault_status
+  ignore_errors: yes
+
+- name: Print Vault seal status
+  debug:
+    msg: "sealed: {{ vault_status.stdout | from_json | json_query('sealed') }}"
+  when: "'sealed' in vault_status.stdout"
+
+- name: Reading unseal key contents
+  command: cat {{item}}
+  register: unseal_keys
+  with_fileglob: "{{ unseal_keys_dir_output }}/unseal_key_*"
+  delegate_to: localhost
+  become: no
+  run_once: yes
+
+- name: Unseal vault with unseal keys
+  shell: |
+    vault operator unseal {{ item.stdout }}
+  environment:
+    VAULT_ADDR: "https://{{ ansible_hostname }}:8200"
+  with_items: "{{unseal_keys.results}}"
+  run_once: yes
+  when: '"\"sealed\": true" in vault_status.stdout'
+
+- name: Unseal other vaults with unseal keys
+  shell: |
+    vault operator unseal {{ item.stdout }}
+  environment:
+    VAULT_ADDR: "https://{{ ansible_hostname }}:8200"
+  with_items: "{{unseal_keys.results}}"
+  when: '"\"sealed\": true" in vault_status.stdout'

@@ -1,9 +1,21 @@
 - name: default packages for docker
   yum:
-        name: "{{item}}"
-        state: present
-  with_items:
-        - yum-utils 
-        - device-mapper-persistent-data
-        - lvm2
+    name:
+      - sshpass
+      - yum-utils 
+      - device-mapper-persistent-data
+      - lvm2
+    state: latest
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: default packages for docker debian
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - lsb-release
+      - gnupg
+      - curl
+    state: latest
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 

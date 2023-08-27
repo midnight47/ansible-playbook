@@ -1,38 +1,37 @@
-- name: Install default packages
+- name: Install essential packages
   yum:
-        name: "{{item}}"
-        state: present
-  with_items:
-        - sshpass
-        - sudo
-        - telnet
-        - htop
-        - bind-utils
-        - net-tools
-        - vim
-        - nano
-        - tcpdump
-        - ntp
-        - libselinux-python
-        - wget
-  when: (ansible_distribution_major_version == "7")
+    name:
+      - sshpass
+      - sudo
+      - telnet
+      - htop
+      - bind-utils
+      - net-tools
+      - vim
+      - nano
+      - tcpdump
+      - ntp
+      - ntpdate
+      - libselinux-python
+      - wget
+    state: latest
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
 
-- name: Install additional packages in Centos/Rhel 7
+- name: Install additional packages
   yum:
-        name: "{{ item }}"
-        state: present
-  with_items:
-        - iptables
-        - iptables-services
-  when: (ansible_distribution_major_version == "7")
+    name:
+      - iptables
+      - iptables-services
+    state: latest
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
 
 - name: Delete firewalld service
   yum:
          name: firewalld
          state: absent
   when: (ansible_distribution_major_version == "7")
-
 
 
 
@@ -50,10 +49,11 @@
       - nano
       - tcpdump
       - ntp
+      - ntpdate
       - python3-selinux
       - wget
     state: present
-  when: ansible_distribution == 'Debian'
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Install additional packages in Debian 11
   apt:
@@ -61,10 +61,10 @@
       - iptables
       - iptables-persistent
     state: present
-  when: ansible_distribution == 'Debian' 
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Delete ufw service
   apt:
     name: ufw
     state: absent
-  when: ansible_distribution == 'Debian' 
+  when: ansible_distribution in ['Debian', 'Ubuntu']

@@ -1,10 +1,25 @@
 - name: install  grlusterfs client
   yum:
-    name: "{{item}}"
-    state: present
-  with_items:
-    - glusterfs-client
+    name:
+      - glusterfs-client
+    state: latest
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['glusterclient']
 
+- name: install  grlusterfs client
+  apt:
+    name:
+      - glusterfs-client
+    state: present
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+  tags:
+    - pre-reqs
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['glusterclient']
