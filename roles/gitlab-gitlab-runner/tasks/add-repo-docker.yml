@@ -3,3 +3,20 @@
    url: https://download.docker.com/linux/centos/docker-ce.repo
    dest: /etc/yum.repos.d/docer-ce.repo
   become: yes
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: Add Docker apt key.
+  ansible.builtin.get_url:
+    url: "{{ docker_apt_gpg_key }}"
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    mode: '0644'
+    force: true
+  register: add_repository_key
+  ignore_errors: "{{ docker_apt_ignore_key_error }}"
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Add Docker repository.
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']

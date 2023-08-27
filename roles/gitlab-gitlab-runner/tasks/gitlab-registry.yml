@@ -7,10 +7,12 @@
         registry['enable'] = true
         letsencrypt['enable'] = false
         prometheus_monitoring['enable'] = false
+  when: inventory_hostname in groups['gitlab-server']
+
 - name: GitLab reconfigure after adding REGISTRY
   become: yes
   shell: /bin/gitlab-ctl reconfigure
   tags:
     - gitlab
   notify: start_gitlab
-
+  when: inventory_hostname in groups['gitlab-server']

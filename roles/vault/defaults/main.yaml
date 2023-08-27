@@ -1,0 +1,28 @@
+keepalived: true
+keepalived_bin_dir: /etc/ansible/roles/vault/files   # in this directory on ANSIBLE LOCALHOST, will be stored bin file of KEEPALIVED v.2.*
+
+vault_ssl_path: /opt/vault/tls  # directory on host where will be stored certificate
+vault_certificate_file_name: my_crt_file   # how crt and pem files should be named
+localhost_ssl_dir: /etc/ansible/roles/vault/ssl # In this directory, a certificate will be stored on ANSIBLE LOCALHOST, either self-signed or pre-purchased/created.
+unseal_keys_dir_output: /etc/ansible/roles/vault/unseal_tmp  # in this directory on ANSIBLE LOCALHOST, will be stored unseal keys
+
+vault_certificate_vars:
+  country_name: RU
+  locality_name: Some Country
+  organization_name: Test
+  email_address: master@test.local
+  common_name: test.local
+  subject_alt_name:
+    - DNS:*.test.local
+    - DNS:*.dev.test.local
+    - DNS:*.staging.test.local
+    - DNS:*.prod.test.local
+    - DNS:*.infra.test.local
+    - DNS:vault
+    - DNS:vault1
+    - DNS:vault2
+    - DNS:vault3
+    - IP:127.0.0.1
+
+vault_repository_url_debian: "https://apt.releases.hashicorp.com"
+vault_repository_key_url_debian: "{{ vault_repository_url_debian }}/gpg"

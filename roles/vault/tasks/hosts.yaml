@@ -1,0 +1,21 @@
+- name: Set host names
+  hostname:
+    name: "{{ inventory_hostname }}"
+  become: true
+  when: inventory_hostname in groups['vault']
+
+- name: Add hosts to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_host'] }} {{ item }}"
+    state: present
+  loop: "{{ groups['vault'] }}"
+
+- name: Add virtual address and hostname to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ virtual_address }} {{ virtual_hostname }}"
+    state: present
+  when: 
+    - keepalived == true  
+    - inventory_hostname in groups['vault']

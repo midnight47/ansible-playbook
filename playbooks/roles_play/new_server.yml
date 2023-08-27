@@ -1,7 +1,7 @@
 ---
 - hosts: all_servers
   become: true
-  ignore_errors: yes
+  ignore_errors: no
   become_method: sudo
   gather_facts: yes
   vars:
@@ -10,6 +10,4 @@
    - ansible_playbook_dir: /etc/ansible/
   roles:
    - new_server
-#  tasks:
-#  - include_role:
-#     name: docker_docker_compose
+

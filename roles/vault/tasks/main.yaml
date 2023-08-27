@@ -1,0 +1,22 @@
+---
+- import_tasks: packpages.yaml
+  tags: packpages
+
+- import_tasks: hosts.yaml
+  tags: hosts
+
+- import_tasks: add_repo.yaml
+  tags: repo 
+
+- import_tasks: install_vault.yaml
+  tags: vault-install
+
+- import_tasks: ssl.yaml
+  tags: ssl
+
+- import_tasks: initial_vault.yaml
+  tags: vault-initial
+
+- import_tasks: keepalived.yaml
+  tags: keepalived
+  when: keepalived

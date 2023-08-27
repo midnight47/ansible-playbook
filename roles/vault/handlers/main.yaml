@@ -1,0 +1,6 @@
+- name: Restart Keepalived
+  service:
+    name: keepalived
+    state: restarted
+    enabled: yes
+  when: inventory_hostname in groups['vault'] and ansible_distribution in ['Debian', 'Ubuntu']

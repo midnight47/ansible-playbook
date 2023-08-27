@@ -9,16 +9,6 @@
    - /etc/systemd/system/docker.service.d/
   when: proxy
 
-#- name: host
-#  debug:
-#   msg:
-#   - "{{ item }}"
-#   - "{{ proxy }}"
-#  with_items:
-#   - "{{ groups['NOproxy'] }}"
-#  when: proxy
-
-
 - name: copy template for proxy to /root/.docker/config.json
   template: 
     src: /etc/ansible/roles/docker_docker_compose/templates/config.json 

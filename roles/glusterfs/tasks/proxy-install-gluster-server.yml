@@ -1,8 +1,6 @@
 - name: install  grlusterfs server
   yum:
-    name: "{{item}}"
-    state: present
-  with_items:
+    name:
     - glusterfs 
     - glusterfs-libs 
     - glusterfs-server
@@ -11,4 +9,35 @@
     https_proxy: "{{ https_proxy }}"
   notify:
    - Start gluster
-  when: inventory_hostname in groups['glustermaster']
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['glustermaster']
+
+- name: preinstall debian
+  apt:
+    name:
+      - gnupg2 
+      - apt-transport-https 
+      - software-properties-common
+    state: present
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+  notify:
+   - Start gluster
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: install  grlusterfs server debian
+  apt:
+    name:
+      - glusterfs-server
+    state: present
+  environment:
+    http_proxy: "{{ http_proxy }}"
+    https_proxy: "{{ https_proxy }}"
+  notify:
+   - Start gluster
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['glustermaster']

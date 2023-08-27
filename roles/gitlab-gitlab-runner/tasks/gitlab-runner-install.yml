@@ -6,23 +6,40 @@
     disable_gpg_check: yes
   tags:
     - gitlab-ci-multi-runner
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS']
+    - inventory_hostname in groups['gitlab-runner']
+
+- name: Installing GitLab Runner debian
+  apt:
+    name: gitlab-runner
+    state: present
+  tags:
+    - gitlab-runner
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - inventory_hostname in groups['gitlab-runner']
+  
 
 - name: Creates directory /var/opt/gitlab-runner
   file:
     path: /var/opt/gitlab-runner
     state: directory
     mode: 755
+  when: inventory_hostname in groups['gitlab-runner']
 
 - name: ADD user gitlab-runner
   user:
     name: gitlab-runner
     group: gitlab-runner
+  when: inventory_hostname in groups['gitlab-runner']
 
 - name: gitlab-multiranner start
   become: yes
   shell: gitlab-ci-multi-runner start
   tags:
     - gitlab-ci-multi-runner
+  when: inventory_hostname in groups['gitlab-runner']
 
 
 

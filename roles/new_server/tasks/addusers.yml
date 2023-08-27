@@ -1,13 +1,19 @@
+- name: Ensure group "wheel" exists
+  group:
+    name: wheel
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
 - name: add users
   user:
         name: "{{ item }}"
-        groups: sudo
+        groups: wheel
         shell: /bin/bash
         append: yes
   with_items:
         - ansible
         #- testuser
-  when: ansible_distribution == 'Debian'
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: add users
   user:
@@ -28,6 +34,3 @@
   with_items:
         - ansible
         #- testuser
-
-
-

@@ -1,0 +1,26 @@
+- name: Add Vault/Hashicorp apt key
+  apt_key:
+    url: "{{ vault_repository_key_url_debian }}"
+    state: present
+  become: true
+  when: ansible_pkg_mgr == 'apt'
+
+- name: Add Vault/Hashicorp apt repo
+  apt_repository:
+    repo: "deb {{ vault_repository_url_debian }} {{ ansible_distribution_release }} main"
+    state: present
+  become: true
+  when: ansible_pkg_mgr == 'apt'
+
+- name: Add Vault/Hashicorp rpm repo
+  copy:
+    content: |
+      [hashicorp]
+      name=HashiCorp Stable - RHEL
+      baseurl=https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+      gpgcheck=1
+      gpgkey=https://rpm.releases.hashicorp.com/gpg
+      enabled=1
+      enabled_metadata=1
+    dest: /etc/yum.repos.d/hashicorp.repo
+  when: ansible_pkg_mgr == 'yum'

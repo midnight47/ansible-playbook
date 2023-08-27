@@ -8,4 +8,30 @@
   template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/ntp.conf" dest=/etc/ntp.conf
   notify:
   - restart ntp
-  when: ansible_distribution == 'Debian'
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: update time 
+  command: "ntpdate 0.debian.pool.ntp.org"
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: ntpd stop
+  service:
+    name: ntpd
+    state: stopped
+    enabled: yes
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: update time 
+  command: "ntpd -gq"
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: ntpd start
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+  when: ansible_distribution in ['RedHat', 'CentOS']

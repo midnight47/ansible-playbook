@@ -1,0 +1,195 @@
+- name: Check if the directory "{{ vault_ssl_path }}" exists
+  stat:
+    path: "{{ vault_ssl_path }}"
+  register: vault_ssl_dir_exist
+
+- name: Create "{{ vault_ssl_path }}" directory
+  file:
+    path: "{{ vault_ssl_path }}"
+    state: directory
+    mode: '0755'
+  when: 
+    - inventory_hostname in groups['vault']
+    - not vault_ssl_dir_exist.stat.exists
+
+- name: Check if the directory "{{ localhost_ssl_dir }}" exists
+  stat:
+    path: "{{ localhost_ssl_dir }}"
+  run_once: yes
+  delegate_to: localhost
+  register: localhost_ssl_dir_exist
+
+- name: Create "{{ localhost_ssl_dir }}" directory
+  file:
+    path: "{{ localhost_ssl_dir }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  when: 
+    - inventory_hostname in groups['vault']
+    - not localhost_ssl_dir_exist.stat.exists
+
+- name: Check if the file "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem" exists
+  stat:
+    path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
+  register: file_pem_exist
+
+- name: Check if the file "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem" exists
+  stat:
+    path: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem"
+  delegate_to: localhost
+  run_once: yes
+  register: localhost_file_pem_exist
+
+- name: Check if the file "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt" exists
+  stat:
+    path: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+  delegate_to: localhost
+  run_once: yes
+  register: localhost_file_crt_exist
+
+- name: create private key 
+  openssl_privatekey:
+    path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.key"
+    size: 2048
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+- name: create csr
+  openssl_csr:
+    path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.csr"
+    privatekey_path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.key"
+    country_name: "{{ vault_certificate_vars.country_name }}"
+    locality_name: "{{ vault_certificate_vars.locality_name }}"
+    organization_name: "{{ vault_certificate_vars.organization_name }}"
+    email_address: "{{ vault_certificate_vars.email_address }}"
+    common_name: "{{ vault_certificate_vars.common_name }}"
+    subject_alt_name: "{{ vault_certificate_vars.subject_alt_name }}"
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+  run_once: yes
+  when:
+    - inventory_hostname in groups['vault']
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+- name: create crt
+  openssl_certificate:
+    path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.crt"
+    csr_path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.csr"
+    privatekey_path: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.key"
+    provider: selfsigned
+  run_once: yes
+  when: 
+    - inventory_hostname in groups['vault']
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+# - name: Generate self-signed certificate
+#   command: openssl x509 -req -days 3650 -in {{ vault_ssl_path }}/{{ vault_certificate_file_name }}.csr -signkey {{ vault_ssl_path }}/{{ vault_certificate_file_name }}.key -out {{ vault_ssl_path }}/{{ vault_certificate_file_name }}.crt
+#   run_once: yes
+#   when: inventory_hostname in groups['vault']
+
+- name: create pem
+  ansible.builtin.assemble:
+    src: "{{ vault_ssl_path }}"
+    dest: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
+    regexp: "{{ vault_certificate_file_name }}\\.(key|crt)"
+  when: 
+    - inventory_hostname == ansible_play_hosts[0]
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+- name: Copy pem file from source server
+  ansible.builtin.fetch:
+    src: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
+    dest: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem"
+    flat: yes
+  when: 
+    - inventory_hostname == ansible_play_hosts[0] 
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+- name: Copy crt file from source server
+  ansible.builtin.fetch:
+    src: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.crt"
+    dest: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+    flat: yes
+  when: 
+    - inventory_hostname == ansible_play_hosts[0] 
+    - not file_pem_exist.stat.exists
+    - not localhost_file_pem_exist.stat.exists
+    - not localhost_file_crt_exist.stat.exists
+
+- name: SECOND Check if the file "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem" exists
+  stat:
+    path: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem"
+  delegate_to: localhost
+  run_once: yes
+  register: localhost_file_pem_exist
+
+- name: SECOND Check if the file "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt" exists
+  stat:
+    path: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+  delegate_to: localhost
+  run_once: yes
+  register: localhost_file_crt_exist
+
+- name: Copy pem file to other servers
+  ansible.builtin.copy:
+    src: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.pem"
+    dest: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
+  loop: "{{ groups['vault'] }}"
+  when: 
+    - localhost_file_pem_exist.stat.exists 
+    - localhost_file_crt_exist.stat.exists
+
+- name: Copy crt file to other servers
+  ansible.builtin.copy:
+    src: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+    dest: "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.crt"
+  loop: "{{ groups['vault'] }}"
+  when: 
+    - localhost_file_pem_exist.stat.exists 
+    - localhost_file_crt_exist.stat.exists
+
+- name: Rhell enable dynamic CA update-ca-trust
+  command: update-ca-trust force-enable
+  when: 
+    - inventory_hostname in groups['vault']
+    - ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Copy crt file to trusted CA DEBIAN
+  ansible.builtin.copy:
+    src: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+    dest: "/usr/local/share/ca-certificates/"
+  loop: "{{ groups['vault'] }}"
+  when:  ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Copy crt file to trusted CA RHELL
+  ansible.builtin.copy:
+    src: "{{ localhost_ssl_dir }}/{{ vault_certificate_file_name }}.crt"
+    dest: "/etc/pki/ca-trust/source/anchors/"
+  loop: "{{ groups['vault'] }}"
+  when:  ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Update self sign cert RHELL
+  command: update-ca-trust extract
+  when: 
+    - inventory_hostname in groups['vault']
+    - ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Update self sign cert DEBIAN
+  command: update-ca-certificates
+  when: 
+    - inventory_hostname in groups['vault']
+    - ansible_distribution in ['Debian', 'Ubuntu']

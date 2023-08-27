@@ -6,6 +6,7 @@
 
 - name: yum_clean
   shell: yum clean all
+  when: ansible_distribution in ['RedHat', 'CentOS']
 
 - name: Reload systemd
   command: systemctl daemon-reload
