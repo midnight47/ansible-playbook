@@ -1,0 +1,70 @@
+- name: Create directory for java src
+  file:
+    path: "/usr/lib/jvm/"
+    state: directory
+    mode: '0755'
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Copy java src
+  copy:
+    src: jdk-8u371-linux-x64.tar.gz
+    dest: "/usr/lib/jvm/"
+    mode: '0755'
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Copy java env
+  copy:
+    src: java.deb.sh
+    dest: "/etc/profile.d/java.deb.sh"
+    mode: '0644'
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Untar the archive
+  ansible.builtin.unarchive:
+    src: /usr/lib/jvm/jdk-8u371-linux-x64.tar.gz  # Source file
+    dest: /usr/lib/jvm/                           # Destination directory
+    remote_src: yes                               # Specify "yes" to use the source file on the remote host
+    creates: /usr/lib/jvm/jdk1.8.0_371            # Check if the destination exists (adjust the directory name)
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Set Java 8 as the default Java version
+  ansible.builtin.command: update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk1.8.0_371/bin/java 1
+  become: yes  # Use sudo or become the superuser to execute the command
+  become_user: root  # Specify the user as root for superuser privileges
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Set Java 8 ENV
+  ansible.builtin.set_fact:
+    JAVA_HOME: "/usr/lib/jvm/jdk1.8.0_371"
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+
+- name: Install jdk Rhell
+  yum:
+    name:
+      - java-1.8.0-openjdk
+    state: latest
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Copy java env
+  copy:
+    src: java.rhel.sh
+    dest: "/etc/profile.d/java.rhel.sh"
+    mode: '0644'
+  when:
+    - ansible_distribution in ['CentOS', 'RedHat']
+
+- name: Set Java 8 ENV
+  ansible.builtin.set_fact:
+    JAVA_HOME: "/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-1.el7_6.x86_64/jre/bin/java"
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+# - name: Include filter plugin
+#   include_vars:
+#     file: filter_plugins/nexus3_oss_filters.py
