@@ -1,8 +1,0 @@
----
-- hosts: vault
-  become: true
-  ignore_errors: yes
-  become_method: sudo
-  gather_facts: yes
-  roles:
-    - vault

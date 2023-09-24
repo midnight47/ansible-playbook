@@ -1,0 +1,13 @@
+- name: Set host names
+  hostname:
+    name: "{{ inventory_hostname }}"
+  become: true
+  when: inventory_hostname in groups['nexus']
+
+- name: Add hosts to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_host'] }} {{ item }}"
+    state: present
+  loop: "{{ groups['nexus'] }}"
+
