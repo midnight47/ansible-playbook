@@ -5,3 +5,19 @@
   become: yes
   notify:
    - Restart docker
+  when: ansible_distribution in ['RedHat', 'CentOS']
+
+- name: Ensure old versions of Docker are not installed.
+  package:
+    name:
+      - docker
+      - docker-engine
+    state: absent
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Install Docker Debian
+  apt:
+    name:
+      - docker-ce 
+    state: present
+  when: ansible_distribution in ['Debian', 'Ubuntu']
