@@ -14,7 +14,6 @@
       - ntpdate
       - libselinux-python
       - wget
-      - software-properties-common
       - rsync
     state: latest
   when: ansible_distribution in ['RedHat', 'CentOS']
@@ -55,6 +54,7 @@
       - python3-selinux
       - wget
       - rsync
+      - software-properties-common
     state: present
   when: ansible_distribution in ['Debian', 'Ubuntu']
 

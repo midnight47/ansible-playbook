@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn ipa-replica-install --setup-dns --no-forwarders
+expect "Directory Manager (existing master) password:"
+send "{{ ds_password }}\r"
+expect eof

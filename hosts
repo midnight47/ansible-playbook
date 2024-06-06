@@ -163,4 +163,39 @@ vault3 ansible_host=192.168.1.105
 virtual_hostname=vault
 virtual_address=192.168.1.110
 
+[freeipa:children]
+ipa_servers
+ipa_replicas
+ipa_clients
+[ipa_servers]
+freeipa-1.test.local ansible_host=192.168.1.100
+[ipa_replicas]
+freeipa-2.test.local ansible_host=192.168.1.101
+[ipa_clients]
+nexus.test.local ansible_host=192.168.1.102
+vault1.test.local ansible_host=192.168.1.103
+vault2.test.local ansible_host=192.168.1.104
+vault3.test.local ansible_host=192.168.1.105
+gitlab.test.local ansible_host=192.168.1.106
+gitlab-runner.test.local ansible_host=192.168.1.107
+nfs.test.local ansible_host=192.168.1.108
+gluster-fs1.test.local ansible_host=192.168.1.109
+gluster-fs2.test.local ansible_host=192.168.1.110
+
+[nexus:children]
+nexus_server
+nexus_clients
+[nexus_server]
+nexus.test.local ansible_host=192.168.1.102
+[nexus_clients]
+freeipa-1.test.local ansible_host=192.168.1.100
+freeipa-2.test.local ansible_host=192.168.1.101
+vault1.test.local ansible_host=192.168.1.103
+vault2.test.local ansible_host=192.168.1.104
+vault3.test.local ansible_host=192.168.1.105
+gitlab.test.local ansible_host=192.168.1.106
+gitlab-runner.test.local ansible_host=192.168.1.107
+nfs.test.local ansible_host=192.168.1.108
+gluster-fs1.test.local ansible_host=192.168.1.109
+gluster-fs2.test.local ansible_host=192.168.1.110
 

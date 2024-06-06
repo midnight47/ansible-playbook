@@ -1,0 +1,9 @@
+---
+- include_tasks: setup_ipa_server.yml
+  when: inventory_hostname == groups['ipa_servers'][0]
+
+- include_tasks: setup_ipa_replica.yml
+  when: inventory_hostname in groups['ipa_replicas']
+
+- include_tasks: setup_ipa_client.yml
+  when: inventory_hostname in groups['ipa_clients']
