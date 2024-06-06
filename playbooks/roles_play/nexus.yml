@@ -4,5 +4,8 @@
   ignore_errors: yes
   become_method: sudo
   gather_facts: yes
+  vars:
+   - domain: nexus.test.local
+   - password: Secret123
   roles:
     - nexus

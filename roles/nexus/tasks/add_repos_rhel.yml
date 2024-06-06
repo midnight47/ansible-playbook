@@ -1,0 +1,77 @@
+---
+- name: Ensure yum-plugin-priorities is installed
+  ansible.builtin.yum:
+    name: yum-plugin-priorities
+    state: present
+
+- name: Add Centos-7-Nexus repository
+  ansible.builtin.yum_repository:
+    name: Centos-7-Nexus
+    description: Centos-Nexus
+    baseurl: http://{{ domain }}:8081/repository/yum_group/
+    gpgcheck: yes
+    enabled: yes
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+    priority: 1
+
+# - name: Add EPEL Centos-7-Nexus repository
+#   ansible.builtin.yum_repository:
+#     name: EPEL-Centos-7-Nexus
+#     description: EPEL-Centos-Nexus
+#     baseurl: http://{{ domain }}:8081/repository/epel_centos_7_proxy/
+#     gpgcheck: no
+#     enabled: yes
+#     priority: 1
+
+- name: Add Centos-7-Nexus repository
+  ansible.builtin.yum_repository:
+    name: Centos-7-Nexus
+    description: Centos-Nexus
+    baseurl: http://{{ domain }}:8081/repository/centos_7_proxy/
+    gpgcheck: no
+    enabled: yes
+    priority: 1
+
+- name: Add Centos-7-update-Nexus repository
+  ansible.builtin.yum_repository:
+    name: Centos-7-update-Nexus
+    description: Centos-update-Nexus
+    baseurl: http://{{ domain }}:8081/repository/centos_7_update_proxy/
+    gpgcheck: no
+    enabled: yes
+    priority: 1
+
+- name: Set priority for base repository
+  ansible.builtin.lineinfile:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^priority='
+    line: 'priority=10'
+    insertafter: '^\[base\]'
+
+- name: Set priority for updates repository
+  ansible.builtin.lineinfile:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^priority='
+    line: 'priority=10'
+    insertafter: '^\[updates\]'
+
+- name: Set priority for extras repository
+  ansible.builtin.lineinfile:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^priority='
+    line: 'priority=10'
+    insertafter: '^\[extras\]'
+
+- name: Set priority for centosplus repository
+  ansible.builtin.lineinfile:
+    path: /etc/yum.repos.d/CentOS-Base.repo
+    regexp: '^priority='
+    line: 'priority=10'
+    insertafter: '^\[centosplus\]'
+
+- name: Set priority for epel repository
+  ansible.builtin.lineinfile:
+    path: /etc/yum.repos.d/epel.repo
+    regexp: '^priority='
+    line: 'priority=20'
+    insertafter: '^\[epel\]'

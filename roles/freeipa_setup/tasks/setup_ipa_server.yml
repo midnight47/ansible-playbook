@@ -1,0 +1,65 @@
+---
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+  become: true
+
+- name: Add hosts to /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_host'] }} {{ item }}"
+    state: present
+  loop: "{{ groups['freeipa'] }}"
+
+- name: Copy FreeIPA repository template
+  template:
+    src: freeipa.repo.j2
+    dest: /etc/yum.repos.d/freeipa.repo
+  become: true
+
+- name: Install IPA server packages
+  yum:
+    name:
+      - expect
+      - pexpect
+      - ipa-server
+      - ipa-server-dns
+      - freeipa-healthcheck
+    state: present
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Check if FreeIPA is already installed
+  stat:
+    path: /etc/ipa/default.conf
+  register: ipa_install_check
+
+- name: Calculate reverse zone
+  set_fact:
+    reverse_zone: "{{ '.'.join(ansible_default_ipv4.address.split('.')[-2::-1]) }}.in-addr.arpa."
+
+- name: Run ipa-server-install asynchronously
+  command: >
+    ipa-server-install --unattended --domain={{ domain }} --realm={{ realm }}
+    --hostname={{ inventory_hostname }} --mkhomedir --admin-password={{ admin_password }}
+    --ds-password={{ ds_password }} --no-pkinit --setup-dns --forwarder=8.8.8.8
+    --no-host-dns --auto-reverse
+  async: 3600  # Увеличиваем тайм-аут до 1 часа
+  poll: 0
+  register: ipa_install_async
+  become: yes
+  when:
+    - ansible_os_family == "RedHat"
+    - not ipa_install_check.stat.exists
+
+- name: Wait for ipa-server-install to complete
+  async_status:
+    jid: "{{ ipa_install_async.ansible_job_id }}"
+  register: ipa_install_result
+  until: ipa_install_result.finished
+  retries: 360  # Увеличиваем количество попыток
+  delay: 10
+  become: yes
+  when:
+    - ansible_os_family == "RedHat"
+    - not ipa_install_check.stat.exists

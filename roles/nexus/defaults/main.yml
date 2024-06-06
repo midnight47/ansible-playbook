@@ -27,7 +27,7 @@ nexus_onboarding_wizard: false
 # https://help.sonatype.com/repomanager3/system-requirements#SystemRequirements-Memory
 # and you know what you are doing
 # Note: those values probably belong to a host_vars files...
-nexus_min_heap_size: 2703M
+nexus_min_heap_size: 1000M
 nexus_max_heap_size: "{{ nexus_min_heap_size }}"
 nexus_max_direct_memory: "{{ nexus_min_heap_size }}"
 # The below list should not contain any setting related to the above memory setting
@@ -71,18 +71,18 @@ nexus_application_host: '{{ httpd_setup_enable | ternary("127.0.0.1", "0.0.0.0")
 # i.e.
 # - Set your new password in nexus_admin_password
 # - Run `ansible-playbook -i your/inventory.ini your_playbook.yml -e nexus_default_admin_password=oldpassword`
-nexus_default_admin_password: admin123
+nexus_default_admin_password: "{{ password }}"
 # Nexus admin password to set and use.
 # Note: this should be vault encrypted in your playbook.
-nexus_admin_password: admin123
+nexus_admin_password: "{{ password }}"
 
-nexus_anonymous_access: false
+nexus_anonymous_access: true
 
-nexus_public_hostname: nexus.test.ru
+nexus_public_hostname: "{{ domain }}"
 nexus_public_scheme: https
 
 # How should the role access the API for provisionning
-nexus_api_hostname: nexus.test.ru # localhost
+nexus_api_hostname: "{{ domain }}" # localhost
 nexus_api_scheme: http
 nexus_api_validate_certs: "{{ nexus_api_scheme == 'https' }}"
 nexus_api_context_path: "{{ nexus_default_context_path }}"
@@ -627,17 +627,38 @@ nexus_repos_gitlfs_hosted:
 
 # yum support ...
 nexus_repos_yum_hosted: 
-  - name: epel_centos_7_x86_64
-    remote_url: http://download.fedoraproject.org/pub/epel/7/x86_64
-nexus_repos_yum_proxy: []
-# Example for epel centos-7 x86_64
-# - name: epel_centos_7_x86_64
-#   remote_url: http://download.fedoraproject.org/pub/epel/7/x86_64
-#   # maximum_component_age: 1440
-#   # maximum_metadata_age: 1440
-#   # negative_cache_enabled: true
-#   # negative_cache_ttl: 1440
-nexus_repos_yum_group: []
+  - name: epel_centos_7_hosted
+    remote_url: https://dl.fedoraproject.org/pub/epel/7/x86_64/
+nexus_repos_yum_proxy:
+  - name: epel_centos_7_proxy
+    remote_url: https://dl.fedoraproject.org/pub/epel/7/x86_64/
+  #   maximum_component_age: 1440
+  #   maximum_metadata_age: 1440
+  #   negative_cache_enabled: true
+  #   negative_cache_ttl: 1440
+    distribution: centos-7-epel-proxy
+    flat: true
+  - name: centos_7_proxy
+    remote_url: http://mirror.centos.org/centos-7/7/os/x86_64/
+    distribution: centos-7-proxy
+    # remote_username: 'anon'
+    # remote_password: 'anon'
+    flat: true
+  - name: centos_7_update_proxy
+    remote_url: http://mirror.centos.org/centos-7/7/updates/x86_64/
+    distribution: centos-7-update-proxy
+    # remote_username: 'anon'
+    # remote_password: 'anon'
+    flat: true
+
+nexus_repos_yum_group:
+  - name: yum_group
+    blob_store: "{{ nexus_blob_names.yum.blob }}"
+    member_repos:
+      - centos_7_proxy
+      - epel_centos_7_proxy
+      - centos_7_update_proxy
+
 _nexus_repos_yum_defaults:
   blob_store: "{{ nexus_blob_names.yum.blob }}"
   repodata_depth: 0 # from 0 to 5
@@ -672,11 +693,13 @@ nexus_repos_apt_hosted: []
 #     ...
 #     -----END PGP PRIVATE KEY BLOCK-----
 #   passphrase: "none"
-nexus_repos_apt_proxy: []
-# - name: apt_centos_7_x86_64
-#   remote_url: http://download.fedoraproject.org/pub/epel/7/x86_64
-#   distribution: jessie
-#   flat: true
+nexus_repos_apt_proxy:
+  - name: apt_x86_64
+    remote_url: http://deb.debian.org/debian/
+    distribution: jessie
+    # remote_username: 'anon'
+    # remote_password: 'anon'
+    flat: true
 
 # helm support
 # More on how to work with helm repos https://help.sonatype.com/repomanager3/formats/helm-repositories

@@ -1,0 +1,38 @@
+- name: Add Nexus repository for Debian
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/nexus.list
+    state: touch
+
+- name: Add Nexus repository URL
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/nexus.list
+    line: 'deb [trusted=yes] http://{{ domain }}:8081/repository/apt_x86_64/ buster main'
+
+- name: Remove Nexus authentication file
+  ansible.builtin.file:
+    path: /etc/apt/auth.conf.d/nexus.conf
+    state: absent
+
+- name: Add APT configuration for Nexus
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/99nexus
+    content: |
+      Acquire::AllowInsecureRepositories "true";
+      Acquire::http::AllowRedirect "true";
+
+- name: Set APT pinning priority for Nexus
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/nexus
+    content: |
+      Package: *
+      Pin: origin "{{ domain }}"
+      Pin-Priority: 1001
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: yes
+  register: apt_update_result
+
+- name: Debug apt update result
+  ansible.builtin.debug:
+    var: apt_update_result

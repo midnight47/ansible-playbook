@@ -1,0 +1,11 @@
+---
+- hosts: freeipa
+  become: yes
+  vars:
+    domain: test.local
+    realm: TEST.LOCAL
+    admin_password: Secret123
+    ds_password: Secret123
+    master_password: Secret123
+  roles:
+    - freeipa_setup
