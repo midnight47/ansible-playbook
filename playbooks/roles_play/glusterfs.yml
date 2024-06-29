@@ -6,7 +6,7 @@
   gather_facts: yes
   vars:
    - dir_gluster_master: /gluster
-   - dir_gluster_client: /var/gluster
+   - dir_gluster_client: /gluster-client
    - name_of_gluster_tom: gluster-tom
    - replica_number: "{{ groups['glustermaster'] | length }}"
    - proxy: false  # here use true/false

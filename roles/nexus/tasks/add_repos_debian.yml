@@ -3,10 +3,20 @@
     path: /etc/apt/sources.list.d/nexus.list
     state: touch
 
+- name: Add Nexus repository for Debian
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/nexus-secure.list
+    state: touch
+
 - name: Add Nexus repository URL
   ansible.builtin.lineinfile:
     path: /etc/apt/sources.list.d/nexus.list
-    line: 'deb [trusted=yes] http://{{ domain }}:8081/repository/apt_x86_64/ buster main'
+    line: 'deb [trusted=yes] http://{{ domain }}:8081/repository/apt_x86_64/ bookworm main contrib non-free non-free-firmware'
+
+- name: Add Nexus apt_secure repository URL
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/nexus-secure.list
+    line: 'deb [trusted=yes] http://{{ domain }}:8081/repository/apt_secure/ bookworm-security main contrib non-free non-free-firmware'
 
 - name: Remove Nexus authentication file
   ansible.builtin.file:

@@ -95,25 +95,6 @@ cephclient
 
 
 
-[nfs:children]
-nfsmaster
-nfsclient
-[nfsmaster]
-nfs-server ansible_host=192.168.1.107
-[nfsclient]
-192.168.1.100
-192.168.1.109
-
-
-[glusterfs:children]
-glustermaster
-glusterclient
-[glustermaster]
-glustermaster1 ansible_host=192.168.1.107
-glustermaster2 ansible_host=192.168.1.108
-[glusterclient]
-
-
 [kubernetes:children]
 kubermaster
 kuberworker
@@ -148,20 +129,19 @@ balance
 gitlab-server
 gitlab-runner
 [gitlab-server]
-gitlab-server ansible_host=192.168.1.100
+gitlab.test.local ansible_host=192.168.1.106
 [gitlab-runner]
-gitlab-runner ansible_host=192.168.1.109
+gitlab-runner.test.local ansible_host=192.168.1.107
 
 
 
 [vault]
-vault1 ansible_host=192.168.1.103
-vault2 ansible_host=192.168.1.104
-vault3 ansible_host=192.168.1.105
-
+vault1.test.local ansible_host=192.168.1.103
+vault2.test.local ansible_host=192.168.1.104
+vault3.test.local ansible_host=192.168.1.105
 [vault:vars]
-virtual_hostname=vault
-virtual_address=192.168.1.110
+virtual_hostname=vault.test.local
+virtual_address=192.168.1.111
 
 [freeipa:children]
 ipa_servers
@@ -199,3 +179,23 @@ nfs.test.local ansible_host=192.168.1.108
 gluster-fs1.test.local ansible_host=192.168.1.109
 gluster-fs2.test.local ansible_host=192.168.1.110
 
+
+[nfs:children]
+nfsmaster
+nfsclient
+[nfsmaster]
+nfs.test.local ansible_host=192.168.1.108
+[nfsclient]
+192.168.1.100
+192.168.1.101
+
+
+[glusterfs:children]
+glustermaster
+glusterclient
+[glustermaster]
+gluster-fs1.test.local ansible_host=192.168.1.109
+gluster-fs2.test.local ansible_host=192.168.1.110
+[glusterclient]
+192.168.1.100
+192.168.1.101

@@ -8,8 +8,8 @@
   tags: gluster repo
 - import_tasks: create-gluster-dir.yml
   tags: create-dir
-- import_tasks: add-to-hosts.yml
-  tags: add-hostname-to-hosts
+# - import_tasks: add-to-hosts.yml
+#   tags: add-hostname-to-hosts
 - import_tasks: proxy-install-gluster-server.yml
   tags: proxy install-gluster-serer
   when: proxy

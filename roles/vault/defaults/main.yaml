@@ -18,10 +18,10 @@ vault_certificate_vars:
     - DNS:*.staging.test.local
     - DNS:*.prod.test.local
     - DNS:*.infra.test.local
-    - DNS:vault
-    - DNS:vault1
-    - DNS:vault2
-    - DNS:vault3
+    - DNS:vault.test.local
+    - DNS:vault1.test.local
+    - DNS:vault2.test.local
+    - DNS:vault3.test.local
     - IP:127.0.0.1
 
 vault_repository_url_debian: "https://apt.releases.hashicorp.com"

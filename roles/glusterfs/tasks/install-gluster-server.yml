@@ -5,6 +5,8 @@
     - glusterfs-libs 
     - glusterfs-server
     state: latest
+    force: yes
+    allow_downgrade: yes
   notify:
    - Start gluster
   when: 
@@ -18,6 +20,8 @@
       - apt-transport-https 
       - software-properties-common
     state: present
+    force: yes
+    force_apt_get: yes
   notify:
    - Start gluster
   when: 
@@ -28,6 +32,8 @@
     name:
       - glusterfs-server
     state: present
+    force: yes
+    force_apt_get: yes
   notify:
    - Start gluster
   when: 
