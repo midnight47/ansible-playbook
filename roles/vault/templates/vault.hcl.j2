@@ -1,5 +1,5 @@
-cluster_addr  = "https://{{ cluster_addr }}:8201"
-api_addr      = "https://{{ cluster_addr }}:8200"
+cluster_addr  = "https://{{ inventory_hostname }}:8201"
+api_addr      = "https://{{ inventory_hostname }}:8200"
 
 disable_mlock = true
 ui = true
@@ -13,12 +13,12 @@ listener "tcp" {
  
 storage "raft" {
   path    = "/opt/vault/data"
-  node_id = "{{ inventory_hostname.split('.')[0] }}"
+  node_id = "{{ inventory_hostname }}"
  
   {% for host in groups['vault'] %}
   retry_join {
-    leader_tls_servername   = "{{ hostvars[host]['ansible_hostname'] }}"
-    leader_api_addr         = "https://{{ hostvars[host]['ansible_hostname'] }}:8200"
+    leader_tls_servername   = "{{ hostvars[host]['inventory_hostname'] }}"
+    leader_api_addr         = "https://{{ hostvars[host]['inventory_hostname'] }}:8200"
     leader_ca_cert_file     = "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
     leader_client_cert_file = "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"
     leader_client_key_file  = "{{ vault_ssl_path }}/{{ vault_certificate_file_name }}.pem"

@@ -141,6 +141,12 @@
     path: /var/lib/ipa/sysrestore/sysrestore.state
   register: ipa_replica_install_check_post
 
+## копируем скрипт для создания системных пользователей
 
-
-
+- name: Copy freeipa-sam.sh script
+  copy:
+    src: freeipa-sam.sh
+    dest: /etc/ipa/freeipa-sam.sh
+    mode: '0755'
+  when:
+    - inventory_hostname in groups['ipa_replicas']

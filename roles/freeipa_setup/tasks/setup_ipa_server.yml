@@ -63,3 +63,13 @@
   when:
     - ansible_os_family == "RedHat"
     - not ipa_install_check.stat.exists
+
+## копируем скрипт для создания системных пользователей
+
+- name: Copy freeipa-sam.sh script
+  copy:
+    src: freeipa-sam.sh
+    dest: /etc/ipa/freeipa-sam.sh
+    mode: '0755'
+  when:
+    - inventory_hostname in groups['ipa_servers']

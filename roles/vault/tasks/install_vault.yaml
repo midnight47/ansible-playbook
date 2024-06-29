@@ -17,5 +17,5 @@
     src: vault.hcl.j2
     dest: "/etc/vault.d/vault.hcl"
   vars:
-    cluster_addr: "{{ ansible_hostname  }}"
-    api_addr: "{{ ansible_hostname  }}"
+    cluster_addr: "{{ inventory_hostname  }}"
+    api_addr: "{{ inventory_hostname  }}"

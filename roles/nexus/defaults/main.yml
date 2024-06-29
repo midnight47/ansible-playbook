@@ -700,6 +700,10 @@ nexus_repos_apt_proxy:
     # remote_username: 'anon'
     # remote_password: 'anon'
     flat: true
+  - name: apt_secure
+    remote_url: http://security.debian.org/debian-security
+    distribution: jessie
+    flat: true
 
 # helm support
 # More on how to work with helm repos https://help.sonatype.com/repomanager3/formats/helm-repositories

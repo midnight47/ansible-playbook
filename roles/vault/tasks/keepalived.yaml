@@ -16,6 +16,7 @@
     name:
       - keepalived
     state: present
+    force: yes
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Install keepalived rhell

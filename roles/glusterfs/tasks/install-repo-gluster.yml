@@ -22,11 +22,33 @@
 
 - name: Ensure debian repo is present.
   apt_repository:
-    repo: "deb https://download.gluster.org/pub/gluster/glusterfs/{{ glusterfs_deb_version }}/Debian/\
+    repo: "deb [signed-by=/usr/share/keyrings/glusterfs-archive-keyring.gpg] https://download.gluster.org/pub/gluster/glusterfs/{{ glusterfs_deb_version }}/Debian/\
       {% if ansible_distribution_major_version|int >= 11 %}{{ ansible_distribution_major_version }}{% else %}{{ ansible_distribution_release }}{% endif %}/{{ deb_architecture.stdout }}/apt {{ ansible_distribution_release }} \
       main"
     state: present
     filename: gluster
   register: glusterfs_deb_source_added
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Ensure repository pubkey for GlusterFS is present using shell
+  shell: |
+    curl https://download.gluster.org/pub/gluster/glusterfs/11/rsa.pub | gpg --dearmor > /usr/share/keyrings/glusterfs-archive-keyring.gpg
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+
+# - name: Ensure Debian repository is present using shell
+#   shell: |
+#     DEBID=$(grep 'VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"')
+#     DEBVER=$(grep 'VERSION=' /etc/os-release | grep -Eo '[a-z]+')
+#     DEBARCH=$(dpkg --print-architecture)
+#     echo "deb [signed-by=/usr/share/keyrings/glusterfs-archive-keyring.gpg] https://download.gluster.org/pub/gluster/glusterfs/11/Debian/${DEBID}/${DEBARCH}/apt ${DEBVER} main" | tee /etc/apt/sources.list.d/gluster.list
+#   when: 
+#     - ansible_distribution in ['Debian', 'Ubuntu']
+
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
   when: 
     - ansible_distribution in ['Debian', 'Ubuntu']

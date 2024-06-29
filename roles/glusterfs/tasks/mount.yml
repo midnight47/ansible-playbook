@@ -1,34 +1,31 @@
-- name: get ip brick.
-  shell:
-    cmd: gluster volume info | grep -i brick1 | awk -F ':' '{print $2}' | tr -d ' '
+- name: Gather brick IP addresses
+  shell: |
+    gluster volume info | grep -iE '^Brick[0-9]+:.*' | awk -F ':' '{print $2}' | tr -d ' '
+  register: gluster_brick_ips
   run_once: true
   changed_when: false
-  register: gluster_brick_ip
   when: inventory_hostname in groups['glustermaster']
 
-
-- name: Ensure Gluster volume is mounted.
+- name: Ensure Gluster volume is mounted on master
   become: yes
   become_user: root
   mount:
     name: "{{ dir_gluster_client }}"
-    src: "localhost:/{{name_of_gluster_tom}}"
-    path: "{{dir_gluster_client}}"
+    src: "{{ groups['glustermaster'] | map('regex_replace', '$', ':/' + name_of_gluster_tom) | join(',') }}"
+    path: "{{ dir_gluster_client }}"
     fstype: glusterfs
     opts: "defaults,_netdev"
     state: mounted
   when: inventory_hostname in groups['glustermaster']
 
-- name: Ensure Gluster volume is mounted to client
+- name: Ensure Gluster volume is mounted on clients
   become: yes
   become_user: root
   mount:
     name: "{{ dir_gluster_client }}"
-    src: "{{ gluster_brick_ip.stdout }}:/{{name_of_gluster_tom}}"
-    path: "{{dir_gluster_client}}"
+    src: "{{ groups['glustermaster'] | join(',') }}:/{{ name_of_gluster_tom }}"
+    path: "{{ dir_gluster_client }}"
     fstype: glusterfs
     opts: "defaults,_netdev"
     state: mounted
   when: inventory_hostname in groups['glusterclient']
-
-
