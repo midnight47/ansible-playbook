@@ -57,6 +57,12 @@
 192.168.1.108 # nfs
 192.168.1.109 # gluster-fs1
 192.168.1.110 # gluster-fs2
+192.168.1.112 # kub-master1
+192.168.1.113 # kub-master2
+192.168.1.114 # kub-master3
+192.168.1.115 # kub-worker1
+192.168.1.116 # kub-worker2
+192.168.1.117 # kub-worker3
 
 [NOproxy]
 # localhost
@@ -161,6 +167,12 @@ gitlab-runner.test.local ansible_host=192.168.1.107
 nfs.test.local ansible_host=192.168.1.108
 gluster-fs1.test.local ansible_host=192.168.1.109
 gluster-fs2.test.local ansible_host=192.168.1.110
+kub-master1.test.local ansible_host=192.168.1.112 
+kub-master2.test.local ansible_host=192.168.1.113 
+kub-master3.test.local ansible_host=192.168.1.114 
+kub-worker1.test.local ansible_host=192.168.1.115 
+kub-worker2.test.local ansible_host=192.168.1.116 
+kub-worker3.test.local ansible_host=192.168.1.117 
 
 [nexus:children]
 nexus_server
@@ -178,7 +190,12 @@ gitlab-runner.test.local ansible_host=192.168.1.107
 nfs.test.local ansible_host=192.168.1.108
 gluster-fs1.test.local ansible_host=192.168.1.109
 gluster-fs2.test.local ansible_host=192.168.1.110
-
+kub-master1.test.local ansible_host=192.168.1.112 
+kub-master2.test.local ansible_host=192.168.1.113 
+kub-master3.test.local ansible_host=192.168.1.114 
+kub-worker1.test.local ansible_host=192.168.1.115 
+kub-worker2.test.local ansible_host=192.168.1.116 
+kub-worker3.test.local ansible_host=192.168.1.117
 
 [nfs:children]
 nfsmaster

@@ -57,6 +57,9 @@
       - rsync
       - software-properties-common
       - curl
+      - python3-apt 
+      - python-apt-doc 
+      - python-apt-common
     state: present
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
