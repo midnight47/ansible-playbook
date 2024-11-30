@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Список портов для проверки
+ports=(9000 9001)
+
+# Флаг для отслеживания состояния всех проверок
+all_ports_ok=true
+
+# Функция для проверки доступности порта
+check_port() {
+    local port=$1
+
+    # Используем nc (netcat) для проверки порта
+    nc -z -w5 localhost $port
+    if [ $? -eq 0 ]; then
+        echo "Порт $port доступен"
+    else
+        echo "Порт $port недоступен"
+        all_ports_ok=false
+    fi
+}
+
+# Проверка всех портов
+for port in "${ports[@]}"; do
+    check_port $port
+done
+
+# Если хотя бы один порт недоступен, скрипт завершится с кодом 1
+if [ "$all_ports_ok" = false ]; then
+    exit 1
+else
+    exit 0
+fi

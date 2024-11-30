@@ -1,0 +1,20 @@
+daemonset:
+  enabled: true
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+serviceMonitor:
+  enabled: true
+  labels:
+    release: kube-prometheus-stack
+  prometheusRule:
+    enabled: false
+config:
+  logLevel: info
+  clients:
+    - url: http://loki-gateway.loki.svc.cluster.local/loki/api/v1/push
+      tenant_id: 1

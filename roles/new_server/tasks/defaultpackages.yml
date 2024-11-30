@@ -19,6 +19,33 @@
     state: latest
   when: ansible_distribution in ['RedHat', 'CentOS']
 
+- name: Install essential packages for CentOS and Rocky
+  yum:
+    name:
+      - sshpass
+      - sudo
+      - telnet
+      - htop
+      - bind-utils
+      - net-tools
+      - vim
+      - nano
+      - tcpdump
+      - chrony  # Заменяет ntp и ntpdate
+      - python3-libselinux  # Заменяет libselinux-python
+      - wget
+      - rsync
+      - curl
+    state: latest
+  when: ansible_distribution in ['Rocky']
+
+- name: Delete firewalld service
+  yum:
+    name: 
+      - firewalld
+    state: absent
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Install additional packages
   yum:
@@ -26,16 +53,9 @@
       - iptables
       - iptables-services
     state: latest
-  when: ansible_distribution in ['RedHat', 'CentOS']
-
-
-- name: Delete firewalld service
-  yum:
-         name: firewalld
-         state: absent
-  when: (ansible_distribution_major_version == "7")
-
-
+  register: iptables_install_result
+  when: 
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Install default packages debian
   apt:
@@ -69,6 +89,7 @@
       - iptables
       - iptables-persistent
     state: present
+  register: iptables_install_result
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Delete ufw service
@@ -76,3 +97,19 @@
     name: ufw
     state: absent
   when: ansible_distribution in ['Debian', 'Ubuntu']
+
+
+- name: Enable and start iptables service
+  ansible.builtin.systemd:
+    name: iptables
+    enabled: true
+    state: started
+  when: iptables_install_result.changed
+
+- name: Flush all iptables rules
+  ansible.builtin.command: iptables -F
+  when: iptables_install_result.changed
+
+- name: Save iptables rules
+  ansible.builtin.command: service iptables save
+  when: iptables_install_result.changed

@@ -11,6 +11,48 @@
     state: present
   loop: "{{ groups['freeipa'] }}"
 
+
+# - name: Configure /etc/resolv.conf
+#   blockinfile:
+#     path: /etc/resolv.conf
+#     block: |
+#       search {{ domain }}
+#       nameserver {{ hostvars[groups['ipa_servers'][0]]['ansible_host'] }}
+#       {% for replica in groups['ipa_replicas'] %}
+#       nameserver {{ hostvars[replica]['ansible_host'] }}
+#       {% endfor %}
+#   become: true
+
+
+- name: Проверка наличия строки 'search' в /etc/resolv.conf
+  command: grep '^search' /etc/resolv.conf
+  register: search_line
+  ignore_errors: yes
+
+- name: Обновление строки 'search' с добавлением домена, если его еще нет
+  lineinfile:
+    path: /etc/resolv.conf
+    regexp: '^search (.*)'
+    line: "search {{ (search_line.stdout.split(' ')[1:] + [domain]) | unique | join(' ') }}"
+  when: search_line.rc == 0
+
+
+- name: Добавление nameserver в /etc/resolv.conf
+  blockinfile:
+    path: /etc/resolv.conf
+    insertafter: '^search.*'
+    block: |
+      nameserver {{ hostvars[groups['ipa_servers'][0]]['ansible_host'] }}
+      {% for replica in groups['ipa_replicas'] %}
+      nameserver {{ hostvars[replica]['ansible_host'] }}
+      {% endfor %}
+  when: search_line.rc == 0
+
+- name: повторно проверяем наличие строки 'search' в /etc/resolv.conf
+  command: grep '^search' /etc/resolv.conf
+  register: search_line2
+  ignore_errors: yes
+
 - name: Configure /etc/resolv.conf
   blockinfile:
     path: /etc/resolv.conf
@@ -20,14 +62,16 @@
       {% for replica in groups['ipa_replicas'] %}
       nameserver {{ hostvars[replica]['ansible_host'] }}
       {% endfor %}
-  become: true
+  when: search_line2.rc == 1
+
 
 - name: Copy FreeIPA repository template RedHat
   template:
     src: freeipa.repo.j2
     dest: /etc/yum.repos.d/freeipa.repo
   become: true
-  when: ansible_os_family == "RedHat"
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS']
 
 - name: Install IPA replica packages RedHat
   yum:
@@ -36,7 +80,8 @@
       - freeipa-client
     state: present
   become: yes
-  when: ansible_os_family == "RedHat"
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Install IPA client and dependencies on Debian/Ubuntu
   apt:
@@ -69,3 +114,5 @@
   become: yes
   when:
     - not ipa_client_install_check.stat.exists
+
+

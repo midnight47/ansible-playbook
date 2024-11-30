@@ -1,0 +1,73 @@
+injector:
+  enabled: false
+
+server:
+  image:
+    repository: "hashicorp/vault"
+    tag: "1.18.1"
+    pullPolicy: IfNotPresent
+  logLevel: "info"
+  logFormat: "json"
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  dataStorage:
+    enabled: true
+    size: 1Gi
+    mountPath: "/vault/data"
+    storageClass: nfs-client
+    accessMode: ReadWriteOnce
+  dev:
+    enabled: false
+  standalone:
+    enabled: false
+  ha:
+    enabled: true
+    replicas: 3
+
+    # Set the api_addr configuration for Vault HA
+    # See https://www.vaultproject.io/docs/configuration#api_addr
+    # If set to null, this will be set to the Pod IP Address
+    apiAddr: null
+
+    raft:
+      # Enables Raft integrated storage
+      enabled: true
+      config: |
+        ui = true
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+
+        storage "raft" {
+          path = "/vault/data"
+        }
+
+        service_registration "kubernetes" {}
+
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    activeService: true
+    hosts:
+      - host: vault-unseal.test.local
+        paths:
+          - /
+
+csi:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi
+

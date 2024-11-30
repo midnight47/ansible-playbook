@@ -6,12 +6,10 @@ alertmanager:
     enabled: true
     ingressClassName: nginx
     annotations: {}
-      #kubernetes.io/ingress.class: nginx
     hosts:
-      - alertmanager.test.ru
+      - alertmanager.test.local
     paths:
       - /
-  
   alertmanagerSpec:
     storage: 
      volumeClaimTemplate:
@@ -22,16 +20,13 @@ alertmanager:
            requests:
              storage: 1Gi
          selector: {}
-
-    storage: 
-     volumeClaimTemplate:
-       spec:
-         storageClassName: nfs-client
-         accessModes: ["ReadWriteMany"]
-         resources:
-           requests:
-             storage: 1Gi
-
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
 
 grafana:
   enabled: true
@@ -43,7 +38,7 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts: 
-      - grafana.test.ru
+      - grafana.test.local
     path: /
 
   persistence:
@@ -52,50 +47,16 @@ grafana:
     storageClassName: nfs-client
     accessModes:
       - ReadWriteMany
-    size: 1Gi
-    # annotations: {}
+    size: 2Gi
     finalizers:
       - kubernetes.io/pvc-protection
-
-kube-state-metrics:
-  namespaceOverride: "monitoring"
-  rbac:
-    create: true
-  #podSecurityPolicy:
-   #enabled: true
-
-prometheus-node-exporter:
-  namespaceOverride: ""
-  podLabels:
-    jobLabel: node-exporter
-  releaseLabel: true
-  extraArgs:
-    - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
-    - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
-
-
-kubeControllerManager:
-  enabled: true
-  service:
-    port: 10252
-    targetPort: 10252
-    selector:
-      k8s-app: kube-controller-manager
-
-kubeScheduler:
-  enabled: true
-  service:
-    port: 10251
-    targetPort: 10251
-    selector:
-      k8s-app: kube-scheduler
-
-kubeProxy:
-  enabled: true
-  service:
-    port: 10249
-    targetPort: 10249
-
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1000Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
 
 prometheus:
   enabled: true
@@ -103,11 +64,14 @@ prometheus:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - prometheus.test.ru
+      - prometheus.test.local
     paths:
      - /
 
   prometheusSpec:
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    retention: 10d
     serviceMonitorNamespaceSelector:
        matchLabels:
          prometheus: enabled
@@ -120,4 +84,46 @@ prometheus:
           resources:
             requests:
               storage: 10Gi
+    resources:
+      limits:
+        cpu: 1500m
+        memory: 2000Mi
+      requests:
+        cpu: 1000m
+        memory: 1000Mi
 
+prometheusOperator:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 250m
+      memory: 250Mi
+
+prometheus-node-exporter:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
+
+kube-state-metrics:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
+
+metricsServer:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi

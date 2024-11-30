@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-unseal-cronjob
+  namespace: vault
+spec:
+  schedule: "*/2 * * * *"  # Запускать каждые 2 минуты
+  successfulJobsHistoryLimit: 1  # Хранить только последнее успешное задание
+  failedJobsHistoryLimit: 1      # Хранить только последнее неудачное задание
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: vault-unseal
+            image: alpine:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache curl jq bind-tools netcat-openbsd
+              KEYS=$(jq -r '.unseal_keys_b64[]' /config/cluster-keys.json)
+              for POD in vault-0 vault-1 vault-2
+              do
+                POD_ADDRESS="$POD.vault-internal.vault.svc.cluster.local"
+                echo "Checking if $POD_ADDRESS is sealed..."
+                SEALED=$(curl -s http://$POD_ADDRESS:8200/v1/sys/health | jq -r '.sealed')
+                if [ "$SEALED" = "true" ]; then
+                  echo "$POD_ADDRESS is sealed. Proceeding to unseal."
+                  for KEY in $KEYS
+                  do
+                    RESPONSE=$(curl --silent --request POST --data "{\"key\":\"$KEY\"}" http://$POD_ADDRESS:8200/v1/sys/unseal)
+                    echo "Unseal response from $POD: $RESPONSE"
+                    SEALED=$(echo "$RESPONSE" | jq -r '.sealed')
+                    if [ "$SEALED" = "false" ]; then
+                      echo "$POD_ADDRESS is now unsealed."
+                      break
+                    fi
+                  done
+                else
+                  echo "$POD_ADDRESS is already unsealed."
+                fi
+              done
+            volumeMounts:
+            - name: config
+              mountPath: /config
+          restartPolicy: OnFailure
+          volumes:
+          - name: config
+            configMap:
+              name: vault-unseal-keys

@@ -639,13 +639,13 @@ nexus_repos_yum_proxy:
     distribution: centos-7-epel-proxy
     flat: true
   - name: centos_7_proxy
-    remote_url: http://mirror.centos.org/centos-7/7/os/x86_64/
+    remote_url: http://vault.centos.org/centos-7/7/os/x86_64/
     distribution: centos-7-proxy
     # remote_username: 'anon'
     # remote_password: 'anon'
     flat: true
   - name: centos_7_update_proxy
-    remote_url: http://mirror.centos.org/centos-7/7/updates/x86_64/
+    remote_url: http://vault.centos.org/centos-7/7/updates/x86_64/
     distribution: centos-7-update-proxy
     # remote_username: 'anon'
     # remote_password: 'anon'

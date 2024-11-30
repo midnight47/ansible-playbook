@@ -1,0 +1,36 @@
+# Global definitions configuration block
+global_defs {
+    router_id LVS_LB
+}
+
+vrrp_script check_minio_health {
+    script "/etc/keepalived/minio-health"
+    interval 1
+    timeout 3
+    rise 3
+    fall 3
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    virtual_router_id 99
+    priority 99
+    advert_int 1
+
+    # Please make sure to verify interface name using 'ip a' command
+    interface {{ ansible_default_ipv4.interface }}
+
+    virtual_ipaddress {
+        # Floating IP
+        {{ hostvars[groups['minio'][0]]['virtual_address'] }} dev {{ hostvars[groups['minio'][0]]['ansible_default_ipv4']['interface'] }} label {{ hostvars[groups['minio'][0]]['ansible_default_ipv4']['interface'] }}:vip
+    }
+
+    track_interface {
+        # Please make sure to verify interface name using 'ip a' command
+        {{ hostvars[groups['minio'][0]]['ansible_default_ipv4']['interface'] }}
+    }
+
+    track_script {
+        check_minio_health
+    }
+}

@@ -24,7 +24,7 @@
   with_items:
         - ansible
         #- testuser
-  when: ansible_distribution in ['RedHat', 'CentOS']
+  when: ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Set authorized key took from file for users
   authorized_key:
