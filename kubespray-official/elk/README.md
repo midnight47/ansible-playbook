@@ -28,7 +28,7 @@ docker run --name elastic-helm-charts-certs -i -w /tmp \
 	elasticsearch:8.5.1 \
 	/bin/sh -c " \
 		elasticsearch-certutil ca --out /tmp/elastic-stack-ca.p12 --pass '' && \
-		elasticsearch-certutil cert --name security-master --dns elasticsearch-master --dns kibana-kibana --dns kibana.test.ru --dns elasticsearch-master* --dns logstash-logstash-headless --dns logstash* --days 7000  --ca /tmp/elastic-stack-ca.p12 --pass '' --ca-pass '' --out /tmp/elastic-certificates.p12" && \
+		elasticsearch-certutil cert --name security-master --dns elasticsearch-master --dns kibana-kibana --dns kibana.test.local --dns elasticsearch-master* --dns logstash-logstash-headless --dns logstash* --days 7000  --ca /tmp/elastic-stack-ca.p12 --pass '' --ca-pass '' --out /tmp/elastic-certificates.p12" && \
 docker cp elastic-helm-charts-certs:/tmp/elastic-certificates.p12 ./ && \
 docker rm -f elastic-helm-charts-certs && \
 openssl pkcs12 -nodes -passin pass:'' -in elastic-certificates.p12 -out elastic-certificate.pem && \
@@ -40,7 +40,7 @@ kubectl create secret -n elk generic elastic-certificate-crt --from-file=elastic
 openssl pkey -in elastic-certificate.pem -out cert.key
 openssl crl2pkcs7 -nocrl -certfile elastic-certificate.pem | openssl pkcs7 -print_certs -out cert.crt
 
-kubectl create secret tls tls-kibana --namespace elk --key key.key --cert crt.crt
+kubectl create secret tls tls-kibana --namespace elk --key cert.key --cert cert.crt
 
 теперь можно ставить:
 root@master1:/etc/ansible/kubespray-official/elk# helm upgrade --install elasticsearch elastic/elasticsearch -n elk -f elastic.yaml
@@ -48,7 +48,7 @@ root@master1:/etc/ansible/kubespray-official/elk# helm upgrade --install elastic
 
 12. Настройка kibana
 
-правим доменное имя kibana.test.ru в файле kibana.yaml 
+правим доменное имя kibana.test.local в файле kibana.yaml 
 
 ставим:
 root@master1:/etc/ansible/kubespray-official/elk# helm upgrade --install kibana elastic/kibana -n elk -f kibana.yaml

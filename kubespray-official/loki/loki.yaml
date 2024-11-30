@@ -1,0 +1,208 @@
+loki:
+  server:
+    grpc_server_max_recv_msg_size: 8388608
+    grpc_server_max_send_msg_size: 8388608
+  useTestSchema: false
+  auth_enabled: false
+
+  structuredConfig:
+    memberlist:
+      cluster_label: "loki"
+    schema_config:
+      configs:
+      - from: "2020-09-07"
+        store: tsdb
+        object_store: "s3"
+        schema: "v13"
+        index:
+          period: "24h"
+          prefix: "loki_index_"
+  limits_config:
+    retention_period: 14d
+    ingestion_rate_mb: 4
+    ingestion_burst_size_mb: 6
+  # compactor:
+  #   shared_store: s3
+  #   compaction_interval: 10m
+  #   retention_enabled: true
+  #   retention_delete_delay: 2h
+  #   retention_delete_worker_count: 150
+  storage:
+    # filesystem: null
+    # type: s3
+    bucketNames:
+      chunks: loki-bucket
+      ruler: loki-bucket
+      admin: loki-bucket
+    s3:
+      endpoint: http://192.168.1.120:9000 # http://s3-minio.test.local:9000
+      accessKeyId: "ARMMLGAU2B2Q4K7H92OU"
+      secretAccessKey: "4AkkOeozat6SRS7yZbdIwuWnND3wa1LD3q+4vtmm"
+      insecure: true
+      s3ForcePathStyle: true
+      region: null
+      sse_encryption: false
+      http_config:
+        idle_conn_timeout: 90s
+        response_header_timeout: 0s
+        insecure_skip_verify: true
+
+  ingester:
+    autoforget_unhealthy: true
+
+  storage_config:
+  memcached:
+    chunk_cache:
+      enabled: false
+    results_cache:
+      enabled: false
+  commonConfig:
+    replication_factor: 1
+
+serviceAccount:
+  create: true
+  name: loki-service-account
+  annotations: {}
+
+monitoring:
+  dashboards:
+    enabled: false
+  rules:
+    enabled: true
+    alerting: true
+    labels:
+      release: kube-prometheus-stack
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+    interval: 15s
+  lokiCanary:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
+  selfMonitoring:
+    grafanaAgent:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+write:
+  replicas: 1
+  extraArgs:
+    - "-log.level=info"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  persistence:
+    enabled: true
+    storageClass: nfs-client
+    size: 10Gi
+
+read:
+  replicas: 1
+  extraArgs:
+    - "-log.level=info"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  persistence:
+    enabled: true
+    storageClass: nfs-client
+    size: 10Gi
+
+backend:
+  replicas: 1
+  extraArgs:
+    - "-log.level=info"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  persistence:
+    enabled: true
+    storageClass: nfs-client
+    size: 10Gi
+
+lokiCanary:
+  enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+
+gateway:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  nginxConfig:
+    resolver: "coredns.kube-system.svc.cluster.local"
+
+
+# memberlist:
+#   join_members:
+#     - loki-memberlist.loki.svc.cluster.local
+
+memberlist:
+  service:
+    publishNotReadyAddresses: true
+  join_members:
+    - loki-memberlist.loki.svc.cluster.local
+
+
+# Disable caches
+memcached:
+  enabled: false
+
+# If specific sections are used
+memcached_chunks:
+  enabled: false
+memcached_frontend:
+  enabled: false
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+sidecar:
+  rules:
+    enabled: false
+
+test:
+  enabled: false
+
+enterprise:
+  enabled: false
+
+# gateway:
+#   enabled: false

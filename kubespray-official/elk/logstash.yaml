@@ -42,12 +42,12 @@ extraEnvs:
         name: elasticsearch-master-credentials
         key: password
 
-logstashJavaOpts: "-Xmx1g -Xms1g"
+logstashJavaOpts: "-Xmx500m -Xms500m"
  
 resources:
   requests:
     cpu: "500m"
     memory: "1000Mi"
   limits:
-    cpu: "500m"
-    memory: "1000Mi"
+    cpu: "1000m"
+    memory: "2000Mi"

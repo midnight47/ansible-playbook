@@ -27,7 +27,20 @@
       - freeipa-healthcheck
     state: present
   become: yes
-  when: ansible_os_family == "RedHat"
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS']
+
+- name: Install IPA replica packages ROCKY
+  yum:
+    name:
+      - expect
+      - ipa-server
+      - ipa-server-dns
+      - freeipa-healthcheck
+    state: present
+  become: yes
+  when:
+    - ansible_distribution in ['Rocky']
 
 - name: Check if FreeIPA client is already installed
   stat:
@@ -51,8 +64,25 @@
     '
   become: yes
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS']
     - not ipa_client_install_check.stat.exists
+
+- name: Install IPA client Rocky without DNS updates
+  become: yes
+  shell: |
+    ipa-client-install \
+      --mkhomedir \
+      --domain={{ domain }} \
+      --realm={{ realm }} \
+      --server={{ groups["ipa_servers"][0] }} \
+      --principal=admin \
+      --password={{ admin_password }} \
+      --unattended \
+      --force-join
+  when:
+    - ansible_distribution in ['Rocky']
+    - not ipa_client_install_check.stat.exists
+
 
 - name: Check if FreeIPA replica is already installed
   stat:
@@ -69,7 +99,7 @@
   args:
     stdin: "{{ admin_password }}"
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - not ipa_replica_install_check.stat.exists
 
 - name: Check if A record exists for the replica
@@ -78,7 +108,7 @@
   failed_when: false
   become: yes
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - inventory_hostname in groups['ipa_replicas']
     - not ipa_replica_install_check.stat.exists
 
@@ -86,7 +116,7 @@
   command: ipa dnsrecord-add {{ domain }} {{ inventory_hostname.split('.')[0] }} --a-rec={{ hostvars[inventory_hostname]['ansible_host'] }}
   become: yes
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - inventory_hostname in groups['ipa_replicas']
     - not ipa_replica_install_check.stat.exists
     - dns_a_record_check.rc != 0
@@ -97,7 +127,7 @@
   failed_when: false
   become: yes
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - inventory_hostname in groups['ipa_replicas']
     - not ipa_replica_install_check.stat.exists
 
@@ -105,7 +135,7 @@
   command: ipa dnsrecord-add {{ reverse_zone }} {{ hostvars[inventory_hostname]['ansible_host'].split('.')[3] }} --ptr-rec={{ inventory_hostname }}.
   become: yes
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - inventory_hostname in groups['ipa_replicas']
     - not ipa_replica_install_check.stat.exists
     - dns_ptr_record_check.rc != 0
@@ -118,7 +148,7 @@
     dest: /tmp/ipa_replica_install.expect
     mode: '0755'
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - not ipa_replica_install_check.stat.exists
 
 - name: Run ipa-replica-install with expect script
@@ -126,14 +156,14 @@
   become: yes
   register: replica_install_output
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - not ipa_replica_install_check.stat.exists
 
 - name: Debug replica install output
   debug:
     var: replica_install_output
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
     - not ipa_replica_install_check.stat.exists
 
 - name: Check if ipa-replica-install was successful
@@ -148,5 +178,22 @@
     src: freeipa-sam.sh
     dest: /etc/ipa/freeipa-sam.sh
     mode: '0755'
+  when:
+    - inventory_hostname in groups['ipa_replicas']
+
+## убедимся что dns добавлен в автозапуск
+
+- name: reload named systemd
+  systemd:
+    name: named
+    daemon_reload: True
+  when:
+    - inventory_hostname in groups['ipa_replicas']
+
+- name: named start
+  service:
+    name: named
+    state: started
+    enabled: yes
   when:
     - inventory_hostname in groups['ipa_replicas']

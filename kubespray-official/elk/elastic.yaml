@@ -29,23 +29,11 @@ secretMounts:
     path: /usr/share/elasticsearch/config/certs
 
 
-#extraEnvs:
-#  - name: ELASTIC_PASSWORD
-#    valueFrom:
-#      secretKeyRef:
-#        name: secret-basic-auth
-#        key: password
-#  - name: ELASTIC_USERNAME
-#    valueFrom:
-#      secretKeyRef:
-#        name: secret-basic-auth
-#        key: username
-
-esJavaOpts: "-Xmx1g -Xms1g"
+esJavaOpts: "-Xmx500m -Xms500m"
 
 resources:
   requests:
-    cpu: "1000m"
+    cpu: "500m"
     memory: "1Gi"
   limits:
     cpu: "1000m"
