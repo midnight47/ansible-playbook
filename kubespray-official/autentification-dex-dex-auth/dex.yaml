@@ -1,0 +1,141 @@
+replicaCount: 1
+
+https:
+  enabled: true
+
+configSecret:
+  create: true
+  name: "dex-config"
+
+config:
+  issuer: https://dex.test.local 
+  storage:
+    type: kubernetes
+    config:
+      inCluster: true
+
+  web:
+    https: 0.0.0.0:5556
+    tlsCert: /etc/dex/tls/tls.crt
+    tlsKey: /etc/dex/tls/tls.key
+
+
+  connectors:
+    - type: ldap
+      # Уникальный ID коннектора.  
+      id: freeipa
+      # Отображаемое имя на странице логина.  
+      name: "FreeIPA"
+      config:
+        # -----------------------------
+        # 1. Подключение к FreeIPA / LDAP
+        # -----------------------------
+        # Адрес и порт FreeIPA (LDAP-протокол). Можно использовать 636 и TLS,
+        # но для примера оставим 389 с insecureNoSSL = true.
+        host: freeipa-1.test.local:389
+        # Если вы не используете защищённое соединение, то:
+        insecureNoSSL: true
+        startTLS: false
+        #
+        # Если хотите TLS (ldaps://):
+        #   host: freeipa-1.test.local:636
+        #   insecureNoSSL: false
+        #   startTLS: false
+        #   # И убедитесь, что есть rootCA или включён insecureSkipVerify (небезопасно)
+        #
+        # Сервисная учётка для bind (чтения каталога). Обычно "sysaccounts".
+        bindDN: uid=k8s-access,cn=sysaccounts,cn=etc,dc=test,dc=local
+        bindPW: Secret123
+        # Как Dex подпишет поле с логином на экране (по умолчанию "Username").
+        # Можно переименовать:
+        # usernamePrompt: "Login"  
+        # -----------------------------
+        # 2. Настройки поиска пользователей
+        # -----------------------------
+        userSearch:
+          # baseDN, где лежат пользователи.
+          baseDN: cn=users,cn=accounts,dc=test,dc=local
+          # Фильтр, чтобы выбирать только нужные объекты (например, inetOrgPerson).
+          # Можно оставить (objectClass=person) или (objectClass=inetOrgPerson).
+          filter: "(objectClass=inetOrgPerson)"
+          # Поле, по которому пользователь будет вводить логин (в большинстве
+          # случаев uid).
+          username: uid
+          # Какое поле в LDAP-схеме Dex будет считать "уникальным ID" пользователя:
+          idAttr: uid
+          # Поле, содержащее email. Если userSearch.emailAttr не найден, некоторые
+          # клиенты OIDC не будут работать.
+          emailAttr: mail
+          # Отображаемое имя юзера. Обычно берем cn.
+          nameAttr: cn
+          # (Опционально) preferredUsernameAttr: uid
+        # -----------------------------
+        # 3. Настройки поиска групп
+        # -----------------------------
+        groupSearch:
+          # baseDN, где ищем группы.
+          baseDN: cn=groups,cn=accounts,dc=test,dc=local
+          # Фильтр, чтобы находить только нужный тип групп (groupOfNames и т.п.).
+          filter: "(objectClass=groupOfNames)"
+          # Можно расширить, если у вас есть posixGroup:
+          # filter: "(|(objectClass=groupOfNames)(objectClass=posixGroup))"
+          # userMatchers — самое главное. Dex будет искать запись userAttr
+          # внутри groupAttr, чтобы понять, входит ли пользователь в группу.
+          # По умолчанию в FreeIPA в поле `member` хранится **полный DN** пользователя.
+          userMatchers:
+            - userAttr: DN         # "DN" (с заглавными буквами!) = полный DN пользователя
+              groupAttr: member   # в группе лежит member=uid=user1,cn=users,cn=accounts,...
+          # Как Dex назовёт группу (имя группы).
+          nameAttr: cn
+
+
+
+
+
+
+  staticClients:
+    - id: kubernetes
+      redirectURIs:
+        - 'https://dex-auth.test.local/callback'
+      name: 'Kubernetes'
+      secret: 'kubernetes-secret'
+
+  oauth2:
+    skipApprovalScreen: true
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt"
+  hosts:
+    - host: dex.test.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: dex-tls
+      hosts:
+        - dex.test.local
+
+rbac:
+  create: true
+  createClusterScoped: true
+
+volumes:
+  - name: dex-tls
+    secret:
+      secretName: dex-tls
+
+volumeMounts:
+  - name: dex-tls
+    mountPath: /etc/dex/tls
+    readOnly: true
+
+resources: 
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
