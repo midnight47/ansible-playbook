@@ -1,0 +1,30 @@
+admin:
+  create: true
+  username: admin
+  password: "Secret123"
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  name: loft-ingress
+  host: loft.test.local
+  ingressClass: nginx
+  path: /
+  tls:
+    enabled: false  # Установите true, если используете TLS
+    secret: loft-tls
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClassName: nfs-client  # Замените на ваш StorageClass
+  accessModes: ["ReadWriteOnce"]
+
+serviceAccount:
+  name: loft
+  create: true
+  clusterRole: cluster-admin
+
+

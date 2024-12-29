@@ -1,0 +1,79 @@
+replicaCount: 1
+
+image:
+  repository: mintel/dex-k8s-authenticator 
+  tag: latest
+  pullPolicy: IfNotPresent
+
+dex:
+  url: https://dex.test.local
+  # clientID: kubernetes
+  # clientSecret: kubernetes-secret
+  redirectURI: https://dex-auth.test.local/callback
+
+kubernetes:
+  apiServerURL: https://192.168.1.112
+  caCert: "" # Если используется собственный CA, добавьте его сюда
+
+rbac:
+  enabled: true
+  roles:
+    admin:
+      groups:
+        - k8s-devops
+    edit:
+      groups:
+        - k8s-users-owners
+    view:
+      groups:
+        - k8s-users-ro
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  path: /
+  hosts:
+    - dex-auth.test.local
+  tls:
+    - secretName: dex-tls
+      hosts:
+        - dex-auth.test.local
+
+config:
+  logLevel: debug
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 500m
+
+dexK8sAuthenticator:
+  port: 5555
+  debug: true
+  web_path_prefix: /
+  tlsCert: /etc/dex/tls/tls.crt
+  tlsKey: /etc/dex/tls/tls.key
+
+  clusters:
+  - name: cluster-local
+    short_description: "My Cluster"
+    description: "Example Cluster Long Description..."
+    client_secret: kubernetes-secret
+    issuer: https://dex.test.local
+    k8s_master_uri: https://192.168.1.112
+    client_id: kubernetes
+    redirect_uri: https://dex-auth.test.local/callback
+    # k8s_ca_uri: https://url-to-your-ca.crt
+
+caCerts:
+  enabled: true
+  secrets:
+  - name: dex-ca-cert
+    filename: ca.crt
+    value: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZiVENDQTFXZ0F3SUJBZ0lVSTJDNFdNTkhBeTZFOWtMVGpBZHRBcE9hR2Nzd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1JURUxNQWtHQTFVRUJoTUNhMmN4RXpBUkJnTlZCQWdNQ2xOdmJXVXRVM1JoZEdVeElUQWZCZ05WQkFvTQpHRWx1ZEdWeWJtVjBJRmRwWkdkcGRITWdVSFI1SUV4MFpEQWdGdzB5TkRFeU1UVXdPRFUwTlRWYUdBOHlNRFV5Ck1EVXdNakE0TlRRMU5Wb3dSVEVMTUFrR0ExVUVCaE1DYTJjeEV6QVJCZ05WQkFnTUNsTnZiV1V0VTNSaGRHVXgKSVRBZkJnTlZCQW9NR0VsdWRHVnlibVYwSUZkcFpHZHBkSE1nVUhSNUlFeDBaRENDQWlJd0RRWUpLb1pJaHZjTgpBUUVCQlFBRGdnSVBBRENDQWdvQ2dnSUJBS1JObVNzY1VWNDU0SHdwOVRDZERYa0JGbmJPYWNhd0c1MHBrYko5Ckh3VFNyT1Z3S05VQ2FsV2UxMlp4K0F4ZTAvMzFIdXhOclVOaWdTTTlia2lUSjFVZml2RFRhOElxZW1BbW4zM3cKZFoveVk4ODYzREhTZU1MYTU2L3dPTXJzc1QwNTVBMnVGdHdMek1RUUY2aTJMdS9YTzNCa2pRZXVxQTdlT045YQpUQmZ6VjV3TnFDampDaytXMTU4bFY3S3ZGeC9WOE9Ga1JnaGVmVXNpVVRmWnJwenNtaVVoWGVEVmRCOGZ5TDlVCnduMDIzM2hLWUkrdytQbEppc2J5SmhnQVE4YWNIekRhRWpCaVRYWlpzQVhDejE3UmM3T2M4cE10UEthUEZPRU4KcjdoODM1Y3RYTUwxa29BdVRWbXlUOXM5Y0Uza0hjczd1ajhMeWdLN2RjQXI4WGdvYklXM1kzQUZNNElLTWFScwpFMkQ2OG1HZC91TGFNQ1ZpeHJjQ3Q4ZW1DTW5rODlmL2h0L2RpK0crK1lWZlBNVk5CcHFmRU5kYUo0UVhacVdyCkw1V0ltOEh0aHVQaUo0U0JXOE5sSlpBWG0vZlNCVnlhWnFZWVdZUWN5c2JPRjJ3VlpEeHdoLzNVSFVvVTcvUjEKYVVzNEw2bDZNT2JjbFRJN2pvR0VDblBzd21EUVdzR1AvZmg0UW5ITGRLOTJNUmg5ejBYQVRtbXlaYXJ0UnNXLwpHMnZuZ1hJc1Y5ZTdvZHBucVAzVWxTSTRQUXFGZFVLcE5UclNFSVVJRTlQdURsWWtXcFQ4ejJSWlZuMGVzOWM2CmlDZXBjOFMwSm0rS09YRzd4S1hTcGNjOVRJSU5PM3cwLzBDRmNXRm1mOFRML0VkOGlQVVZjWHBiUjNwck1tOVcKamRHSEFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUkI4MldNREdUakl6WGpFQXR0YUpYZjd4WTc2akFmQmdOVgpIU01FR0RBV2dCUkI4MldNREdUakl6WGpFQXR0YUpYZjd4WTc2akFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTBHCkNTcUdTSWIzRFFFQkN3VUFBNElDQVFBN3QyWllUUkJ3c2JiNEZoZGN1WDlvWXUwMlV4bitJbXRsWVlRb0RZbmYKUHJEMWtsMVBJaG5TNlBsS1EyeHhNMlU3V3pNVzNnTndwaE8vNlNqaXVBQmIvbDY3SGRZYlEvNEhMdHlXalZYVwpEdW55MW5nTS9WelBCM29TRkF1cC9LSlZFdUQ4dFI0UzVxb05TWWE3Y0NTZ3FsWkFQSW1jVlVyZGw4WWtZaDFmCkdCd2o3ajEycEpDZGVzVUlvN2ptb1B4R051eEJNeUpoUWlRem5QR1BVYTlHd2wxQk5pQmNYSXJXWXB0ZHByL2gKOWkrbXZDaUVhTFFscWM5eGVWa3daNTdCMUV5UjhpbjVhY3ZhRHRGTXJDcVIwNXROcEtZbVd5T1Jrck01cno4RQo2OVMxdEtTbkZOUE02c0ZXZjZsdTlvM0FET0wyQ3BNMTZYcjZzdGJjYWRBL2xmWjVKZFRJNHVNK0xLZ0lxLzJ1CkQ0TFFvMURuU00zdGFmTjdwQ1lodkQ0YVBqd3VGWjRqa08xb2JBSTE3UXludXJJeGNaRDRaRW9uajV6SHBCMDAKd3hMU0pCYkhldm1mcFVHVmpDM3BQWXV6Ylh0WG4zaHdXYzJQTWluN1Q1NW51cGlybGJsQ1VEOUdoWjlEWEtLMAphaHY5TU1MMDdJNGF3NnAzL2JvNUtsUFBYZSt4aExSQnIwL3IxanlNRGl1ZzcwSlFIZmV6YzI4OTl6S1RqTDVUCkU0U1MzRWZhWlFEaEt3UHBPT3IvZ2I1L2llbStndUZwQkU2emF3NFFqVEp0TkRydVVHdzljSU95NmEydnFPZ24KTmZ1R1I3VVB4cHJ1L04rNktMNy9CTzFNTDY0c01QWEM0VWVYQkM2KzNRaWFqZWt2V05GdFU4SGNlcUh5ZDdwcwpuQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+
+
