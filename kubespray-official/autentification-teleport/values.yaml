@@ -1,0 +1,59 @@
+clusterName: teleport.test.local
+proxyListenerMode: multiplex
+
+teleport:
+  dataDir: /var/lib/teleport
+
+  authService:
+    enabled: true
+    storage:
+      type: dir
+
+  proxyService:
+    enabled: true
+    publicAddr: teleport.test.local:443
+    httpsPort: 443
+    proxyWebPort: 3080
+    tunnelListenAddr: 0.0.0.0:3080
+
+  kubeService:
+    enabled: true
+    kubeClusterName: local-cluster
+    kubeconfig: ""
+
+  sshService:
+    enabled: false
+
+service:
+  enabled: true
+  type: ClusterIP
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteMany
+  size: 2Gi
+  storageClassName: nfs-client
+
+ingress:
+  enabled: true
+  spec:
+    ingressClassName: nginx 
+    rules:
+      - host: teleport.test.local
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: teleport-cluster
+                  port:
+                    number: 3080  
+
+tls:
+  existingSecretName: teleport-tls
+
+annotations:
+  ingress:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"

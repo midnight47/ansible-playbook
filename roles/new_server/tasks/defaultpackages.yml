@@ -16,6 +16,7 @@
       - wget
       - rsync
       - curl
+      - jq
     state: latest
   when: ansible_distribution in ['RedHat', 'CentOS']
 
@@ -36,6 +37,7 @@
       - wget
       - rsync
       - curl
+      - jq
     state: latest
   when: ansible_distribution in ['Rocky']
 
@@ -80,6 +82,7 @@
       - python3-apt 
       - python-apt-doc 
       - python-apt-common
+      - jq
     state: present
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
