@@ -1,0 +1,71 @@
+# Основной домен для доступа к Rancher
+hostname: rancher.test.local
+
+replicas: 1
+
+privateCA: true
+
+caCerts:
+  secretName: tls-ca  # ваш секрет с CA сертификатом API
+
+# extraEnv:
+#   - name: CATTLE_K8S_API_ENDPOINT
+#     value: "https://192.168.1.112:6443"
+#   - name: KUBERNETES_SERVICE_HOST
+#     value: "192.168.1.112"
+#   - name: KUBERNETES_SERVICE_PORT
+#     value: "6443"
+
+ingress:
+  # If set to false, ingress will not be created
+  # Defaults to true
+  # options: true, false
+  enabled: true
+  includeDefaultExtraAnnotations: true
+  extraAnnotations: {}
+  ingressClassName: "nginx"
+  # Certain ingress controllers will require the pathType or path to be set to a different value.
+  pathType: ImplementationSpecific
+  path: "/"
+  # backend port number
+  servicePort: 80
+
+  tls:
+    # options: rancher, letsEncrypt, secret
+    source: secret
+    secretName: tls-rancher-ingress
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "500Mi"
+  limits:
+    cpu: "1000m"
+    memory: "2024Mi"
+
+persistence:
+  enabled: true                        # Включаем использование persistent volume (если необходимо)
+  storageClass: "nfs-client"              # Укажите storageClass, подходящий для вашего кластера
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 30  # Это даст Rancher до 10 минут на запуск
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 10
+
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5

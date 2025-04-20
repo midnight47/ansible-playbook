@@ -1,0 +1,27 @@
+controller:
+  config:
+    allow-snippet-annotations: "true"
+
+  metrics:
+    enabled: true
+
+  extraArgs:
+    enable-ssl-passthrough: "true"
+
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: false
+    controllerValue: "k8s.io/ingress-nginx"
+
+  ingressClass: nginx
+
+  service:
+    enabled: true
+    type: LoadBalancer
+
+  admissionWebhooks:
+    enabled: true
+
+defaultBackend:
+  enabled: true

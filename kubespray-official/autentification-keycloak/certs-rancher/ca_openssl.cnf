@@ -1,0 +1,6 @@
+[ v3_ca ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = rancher.test.local
+DNS.2 = *.test.local

@@ -1,0 +1,82 @@
+extraEnv: |
+  - name: KEYCLOAK_USER
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-admin-settings
+        key: admin-username
+  - name: KEYCLOAK_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-admin-settings
+        key: admin-password
+  - name: PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: KEYCLOAK_EXTRA_ARGS
+    value: "-Dkeycloak.frontendUrl=https://keycloak.test.local/"
+  - name: KEYCLOAK_ENABLE_HTTPS
+    value: 'true'
+
+resources: 
+  requests:
+    cpu: "500m"
+    memory: "1024Mi"
+  limits:
+    cpu: "500m"
+    memory: "1024Mi"
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  servicePort: http
+  # annotations:
+  #   # Это чтобы nginx всегда редиректил http на https
+  #   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+  rules:
+    -
+      host: 'keycloak.test.local'
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - 'keycloak.test.local'
+      secretName: "keycloak-tls"
+  console:
+    enabled: true
+    ingressClassName: "nginx"
+    rules:
+      -
+        host: 'keycloak.test.local'
+        paths:
+          - path: /auth/admin/
+            pathType: Prefix
+    tls:
+     - hosts:
+         - 'keycloak.test.local'
+       secretName: "keycloak-tls"
+postgresql:
+  enabled: true
+  # PostgreSQL User to create
+  postgresqlUsername: keycloak
+  # PostgreSQL Password for the new user
+  postgresqlPassword: keycloak
+  # PostgreSQL Database to create
+  postgresqlDatabase: keycloak
+  resources:
+    requests:
+      cpu: 500m
+      memory: 500Mi
+    limits:
+      cpu: "1"
+      memory: 1000Mi
+  persistence:
+    enabled: true
+    volumeName: "data"
+    existingClaim: ""
+    mountPath: /bitnami/postgresql
+    subPath: ""
+    storageClass: nfs-client
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
