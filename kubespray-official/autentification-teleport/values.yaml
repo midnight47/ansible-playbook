@@ -1,6 +1,11 @@
 clusterName: teleport.test.local
 proxyListenerMode: multiplex
 
+proxyProtocol: "off"
+
+log:
+  level: DEBUG
+
 teleport:
   dataDir: /var/lib/teleport
 
@@ -12,20 +17,29 @@ teleport:
   proxyService:
     enabled: true
     publicAddr: teleport.test.local:443
-    httpsPort: 443
-    proxyWebPort: 3080
-    tunnelListenAddr: 0.0.0.0:3080
+    web_listen_addr: 0.0.0.0:443
+
+    # монтируем CA, чтобы Teleport доверял своему же TLS-сертификату
+    extraVolumes:
+      - name: teleport-ca
+        secret:
+          secretName: teleport-ca-cert
+    extraVolumeMounts:
+      - name: teleport-ca
+        mountPath: /etc/ssl/certs
+        readOnly: true
+    env:
+      - name: SSL_CERT_FILE
+        value: /etc/ssl/certs/ca.pem
 
   kubeService:
     enabled: true
-    kubeClusterName: local-cluster
-    kubeconfig: ""
+    kubeClusterName: "cluster.local"
 
   sshService:
     enabled: false
 
 service:
-  enabled: true
   type: ClusterIP
 
 persistence:
@@ -38,7 +52,7 @@ persistence:
 ingress:
   enabled: true
   spec:
-    ingressClassName: nginx 
+    ingressClassName: nginx
     rules:
       - host: teleport.test.local
         http:
@@ -49,11 +63,29 @@ ingress:
                 service:
                   name: teleport-cluster
                   port:
-                    number: 3080  
+                    number: 443
 
-tls:
-  existingSecretName: teleport-tls
-
+# Глобальные аннотации (chart автоматически подхватит annotations.ingress для metadata.ingress.annotations)
 annotations:
   ingress:
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
+# Секрет с TLS-сертификатом для Teleport proxy (chart смонтирует его в /etc/teleport/certs)
+tls:
+  existingSecretName: teleport-tls
+  existingCASecretName: teleport-ca-cert
+
+auth:
+  tls:
+    enabled: true
+    certFile: /etc/teleport/certs/tls.crt
+    keyFile: /etc/teleport/certs/tls.key
+    caFile: /etc/teleport/certs/ca.crt
+  extraVolumes:
+    - name: teleport-tls
+      secret:
+        secretName: teleport-tls
+  extraVolumeMounts:
+    - name: teleport-tls
+      mountPath: /etc/teleport/certs
+      readOnly: true
