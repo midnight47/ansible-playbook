@@ -1,13 +1,55 @@
 controller:
-  config:
-    allow-snippet-annotations: "true"
-
+  kind: Deployment
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  ingressClassResource:
+    default: false
+    enabled: true
+    name: "nginx"
   metrics:
     enabled: true
-
+  # service:
+  #   enabled: true
+    external:
+      enabled: true
+    annotations:
+  config:
+    disable-ipv6: "true"
+    disable-ipv6-dns: "true"
+    enable-access-log-for-default-backend: "false"
+    http2-max-field-size: 8k
+    keep-alive: "65"
+    large-client-header-buffers: 16 64k
+    limit-conn-status-code: "429"
+    limit-req-status-code: "429"
+    load-balance: ewma
+    client_max_body_size: 300m
+    proxy-body-size: 300m
+    error-log-level: error
+    log-format-escape-json: "true"
+    log-format-upstream: '{"bytes_sent": "$bytes_sent",  "vhost": "$host", "request_proto": "$server_protocol", "remote_addr": "$remote_addr", "proxy_add_x_forwarded_for": "$proxy_add_x_forwarded_for", "remote_user": "$remote_user", "time_local": "$time_local", "request_method": "$request_method", "request_uri": "$uri", "request_args": "$args", "request" : "$request", "status": "$status", "body_bytes_sent": "$body_bytes_sent", "http_referer": "$http_referer", "http_user_agent": "$http_user_agent", "request_length": "$request_length", "request_time" : "$request_time", "upstream_addr": "$upstream_addr", "upstream_response_length": "$upstream_response_length", "upstream_response_time": "$upstream_response_time", "upstream_status": "$upstream_status", "X-Business-Error": "$upstream_http_x_business_error", "upstream_header_time":  "$upstream_header_time", "upstream_connect_time": "$upstream_connect_time","connections_waiting": "$connections_waiting", "connections_active": "connections_active"}'
+    map-hash-bucket-size: "128"
+    proxy-next-upstream: error timeout http_500 http_502 http_503 http_504
+    server-tokens: "false"
+    ssl-protocols: TLSv1.2 TLSv1.3
+    ssl-session-cache: "true"
+    ssl-session-cache-size: 20m
+    ssl-session-timeout: 30m
+    use-forwarded-headers: "true"
+    use-gzip: "true"
+    use-proxy-protocol: "true"
+    worker-cpu-affinity: auto
+    worker-processes: "2"
+    allow-snippet-annotations: "true"
+    annotations-risk-level: Critical
   extraArgs:
     enable-ssl-passthrough: "true"
-
   ingressClassResource:
     name: nginx
     enabled: true
