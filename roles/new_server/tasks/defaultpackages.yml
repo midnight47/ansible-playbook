@@ -79,7 +79,10 @@
       - rsync
       - software-properties-common
       - curl
-      - python3-apt 
+      - python3-apt
+      - python3-jmespath
+      - apt-transport-https
+      - conntrack
       - python-apt-doc 
       - python-apt-common
       - jq
