@@ -1,0 +1,22 @@
+---
+# SeaweedFS
+seaweed_version: "3.90"
+seaweed_download_url: "https://github.com/seaweedfs/seaweedfs/releases/download/{{ seaweed_version }}/linux_amd64.tar.gz"
+seaweed_user: seaweedfs
+
+# etcd
+etcd_version: "v3.5.16"
+etcd_download_url: "https://github.com/etcd-io/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+etcd_data_dir: "/var/lib/etcd"
+etcd_conf_dir: "/etc/etcd"
+etcd_cluster_token: "etcd-cluster-1"
+
+# Дериктории SeaweedFS
+seaweed_master_dir: "/var/lib/seaweedfs/master"
+seaweed_volume_dir: "/var/lib/seaweedfs/volume"
+
+# Порты
+seaweed_master_port: 9333
+seaweed_volume_port: 8080
+seaweed_filer_port: 8888
+seaweed_s3_port: 8333

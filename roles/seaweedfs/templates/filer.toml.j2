@@ -1,0 +1,7 @@
+[leveldb2]
+enabled = false
+
+[etcd]
+enabled = true
+servers = "{% for h in groups['seaweed_master'] %}{{ h }}:2379{% if not loop.last %},{% endif %}{% endfor %}"
+timeout = "3s"

@@ -1,0 +1,16 @@
+[Unit]
+Description=SeaweedFS Master
+After=network.target
+
+[Service]
+User={{ seaweed_user }}
+ExecStart=/usr/local/bin/weed master \
+  -ip={{ inventory_hostname }} \
+  -port={{ seaweed_master_port }} \
+  -mdir={{ seaweed_master_dir }} \
+  -peers={% for h in groups['seaweed_master'] %}{{ h }}:{{ seaweed_master_port }}{% if not loop.last %},{% endif %}{% endfor %}
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

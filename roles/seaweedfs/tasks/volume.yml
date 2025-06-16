@@ -1,0 +1,79 @@
+---
+- name: Проверить наличие weed binary
+  stat:
+    path: /usr/local/bin/weed
+  register: weed_binary
+  become: yes
+
+- block:
+    - name: Скачиваем SeaweedFS (weed) для volume
+      get_url:
+        url: "{{ seaweed_download_url }}"
+        dest: "/tmp/seaweedfs-{{ seaweed_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Создать временную директорию для распаковки weed
+      file:
+        path: "/tmp/seaweedfs-{{ seaweed_version }}"
+        state: directory
+        mode: '0755'
+
+    - name: Распаковать архив SeaweedFS во временную папку
+      unarchive:
+        src: "/tmp/seaweedfs-{{ seaweed_version }}.tar.gz"
+        dest: "/tmp/seaweedfs-{{ seaweed_version }}"
+        remote_src: yes
+
+    - name: Найти weed-бинарь в распаковке
+      find:
+        paths: "/tmp/seaweedfs-{{ seaweed_version }}"
+        patterns: weed
+        file_type: file
+      register: weed_find
+
+    - name: Установить weed в /usr/local/bin для volume
+      copy:
+        src: "{{ weed_find.files[0].path }}"
+        dest: /usr/local/bin/weed
+        remote_src: yes
+        mode: '0755'
+      notify: Restart weed-volume
+
+    - name: Удалить временную папку распаковки weed
+      file:
+        path: "/tmp/seaweedfs-{{ seaweed_version }}"
+        state: absent
+
+  when: not weed_binary.stat.exists
+
+- name: Создать пользователя seaweedfs
+  user:
+    name: "{{ seaweed_user }}"
+    system: yes
+    shell: /sbin/nologin
+  become: yes
+
+- name: Создать директорию для volume
+  file:
+    path: "{{ seaweed_volume_dir }}"
+    state: directory
+    owner: "{{ seaweed_user }}"
+    group: "{{ seaweed_user }}"
+    mode: '0755'
+  become: yes
+
+- name: Установить systemd-юнит weed-volume
+  template:
+    src: weed-volume.service.j2
+    dest: /etc/systemd/system/weed-volume.service
+  notify:
+    - Reload systemd
+    - Restart weed-volume
+  become: yes
+
+- name: Запустить и включить weed-volume
+  systemd:
+    name: weed-volume
+    state: started
+    enabled: yes
+  become: yes
