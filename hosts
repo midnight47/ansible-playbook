@@ -249,3 +249,20 @@ s3-minio-1.test.local ansible_host=192.168.1.118
 s3-minio-2.test.local ansible_host=192.168.1.119
 [minio:vars]
 virtual_address=192.168.1.120
+
+
+[seaweed:children]
+seaweed_master
+seaweed_filer
+seaweed_volume
+[seaweed_master]
+192.168.1.121
+192.168.1.122
+192.168.1.123
+[seaweed_filer]
+192.168.1.124
+192.168.1.125
+[seaweed_volume]
+192.168.1.126
+192.168.1.127
+

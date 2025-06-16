@@ -1,0 +1,17 @@
+[Unit]
+Description=SeaweedFS Filer с S3
+After=network.target
+
+[Service]
+User={{ seaweed_user }}
+ExecStart=/usr/local/bin/weed filer \
+  -ip={{ inventory_hostname }} \
+  -port={{ seaweed_filer_port }} \
+  -master={% for h in groups['seaweed_master'] %}{{ h }}:{{ seaweed_master_port }}{% if not loop.last %},{% endif %}{% endfor %} \
+  -s3 \
+  -s3.port={{ seaweed_s3_port }}
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

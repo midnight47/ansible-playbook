@@ -1,0 +1,24 @@
+---
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Restart etcd
+  systemd:
+    name: etcd
+    state: restarted
+
+- name: Restart weed-master
+  systemd:
+    name: weed-master
+    state: restarted
+
+- name: Restart weed-volume
+  systemd:
+    name: weed-volume
+    state: restarted
+
+- name: Restart weed-filer
+  systemd:
+    name: weed-filer
+    state: restarted

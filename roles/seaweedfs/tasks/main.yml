@@ -1,0 +1,22 @@
+---
+# roles/seaweedfs/tasks/main.yml
+
+- name: Синхронизировать время
+  command: ntpdate pool.ntp.org
+  become: yes
+  register: ntp_sync
+  changed_when: ntp_sync.rc == 0
+
+
+
+- include_tasks: common_etcd.yml
+  when: "'seaweed_master' in group_names"
+
+- include_tasks: master.yml
+  when: "'seaweed_master' in group_names"
+
+- include_tasks: volume.yml
+  when: "'seaweed_volume' in group_names"
+
+- include_tasks: filer.yml
+  when: "'seaweed_filer' in group_names"

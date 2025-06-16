@@ -1,0 +1,16 @@
+[Unit]
+Description=SeaweedFS Volume
+After=network.target
+
+[Service]
+User={{ seaweed_user }}
+ExecStart=/usr/local/bin/weed volume \
+  -ip={{ inventory_hostname }} \
+  -dir={{ seaweed_volume_dir }} \
+  -mserver={% for h in groups['seaweed_master'] %}{{ h }}:{{ seaweed_master_port }}{% if not loop.last %},{% endif %}{% endfor %} \
+  -index=leveldb
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
