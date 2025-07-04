@@ -1,0 +1,8 @@
+[ v3_ca ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = vmsingle.test.local
+DNS.2 = alertmanager.test.local
+DNS.3 = grafana.test.local
+DNS.4 = vmalert.test.local

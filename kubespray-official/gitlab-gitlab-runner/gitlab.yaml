@@ -1,0 +1,306 @@
+nginx-ingress:
+  enabled: false
+
+global:
+  hosts:
+    # Домен, по которому будет доступен GitLab
+    domain: "test.local"
+  ingress:
+    enabled: true
+    configureCertmanager: false
+    provider: nginx
+    class: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    tls:
+      secretName: "gitlab-tls"
+      hosts:
+        - gitlab.test.local
+  # psql:
+    # main:
+    #   # Параметры подключения к внешней базе данных для основной части GitLab
+    #   host: "${var.rds_address[local.gitlab.rds_infra_name]}"
+    #   port: 5432
+    #   username: "gitlab"
+    #   password:
+    #     secret: "${kubernetes_secret.gitlab_db_secret.metadata[0].name}"
+    #     key: "${keys(kubernetes_secret.gitlab_db_secret.data)[0]}"
+    #   database: "gitlab"
+    # ci:
+    #   # Параметры подключения для базы данных CI
+    #   host: "${var.rds_address[local.gitlab.rds_infra_name]}"
+    #   port: 5432
+    #   username: "gitlab"
+    #   password:
+    #     secret: "${kubernetes_secret.gitlab_db_secret.metadata[0].name}"
+    #     key: "${keys(kubernetes_secret.gitlab_db_secret.data)[0]}"
+    #   database: "gitlab"
+
+
+  appConfig:
+    object_store:
+      enabled: true
+      connection:
+        secret: "gitlab-s3-config"
+        key: "s3.yml"
+  
+  minio:
+    enabled: false
+  serviceAccount:
+    enabled: true
+  email:
+    display_name: 'GitLab'
+    from: "gitlab@test.local"
+    reply_to: "noreply@test.local"
+  smtp:
+    enabled: false
+    address: ""
+    port: 587
+    domain: "gitlab@test.local"
+    user_name: ""
+    password:
+      secret: "" # имя секрета, где хранится пароль
+      key: ""       #password
+    authentication: "login"             # обычно используется "login" или "plain"
+    starttls_auto: true
+  registry:
+    enabled: false
+  shell:
+    port: 2222  # так же открываем порт на ingress controller  tcp:  2222: "gitlab/gitlab-gitlab-shell:2222:PROXY"
+    tcp:
+      proxyProtocol: false
+  # appConfig:
+  #   lfs:
+  #     bucket: "gitlab-lfs"
+  #     path: "lfs"
+  #     connection:
+  #       secret: "biZiP3COrMLYTzflHWH6"
+  #       key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+  #   artifacts:
+  #     bucket: "gitlab-artifacts"
+  #     path: "artifacts"
+  #     connection:
+  #       secret: "biZiP3COrMLYTzflHWH6"
+  #       key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+  #   uploads:
+  #     bucket: "gilab-uploads"
+  #     path: "uploads"
+  #     connection:
+  #       secret: "biZiP3COrMLYTzflHWH6"
+  #       key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+  #   packages:
+  #     bucket: "gitlab-packages"
+  #     path: "packages"
+  #     connection:
+  #       secret: "biZiP3COrMLYTzflHWH6"
+  #       key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+  #   backups:
+  #     bucket: "gitlab-backups"
+  #     path: "backups"
+  #     tmpBucket: "gitlab-backups"
+  #     tmpPath: "tmp"
+    # гугловая авторизация
+    # omniauth:
+    #   enabled: true
+    #   allowSingleSignOn: ['google_oauth2']
+    #   syncProfileAttributes: ['email']
+    #   autoLinkSamlUser: true
+    #   blockAutoCreatedUsers: false
+    #   autoLinkUser: ['google_oauth2']
+    #   providers:
+    #     - secret: "${kubernetes_secret.gitlab_secret.metadata[0].name}"
+    #       key: "${keys(kubernetes_secret.gitlab_secret.data)[0]}"
+redis:
+  install: true
+  master:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+      limits:
+        cpu: "500m"
+        memory: "300Mi"
+    persistence:
+      enabled: true
+      storageClass: nfs-client
+      size: 5Gi
+# Отключаем certmanager
+certmanager:
+  installCRDs: false
+  install: false
+# ОтклюВключаем чаем установку встроенного PostgreSQL
+postgresql:
+  install: true
+  primary:
+    resources:
+      requests:
+        cpu: "300m"
+        memory: "300Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    persistence:
+      enabled: true
+      storageClass: nfs-client
+      size: 10Gi
+
+
+# Registry – хранение Docker-образов (если используется)
+registry:
+  enabled: false
+# Prometheus – мониторинг GitLab (если устанавливается вместе с GitLab)
+prometheus:
+  install: false
+# Основные компоненты GitLab (Rails/Sidekiq/Webservice)
+gitlab:
+  webservice:
+    hpa:
+      enabled: false
+    replicaCount: 1
+    minReplicas: 1
+    maxReplicas: 1
+    ingress:
+      proxyBodySize: "5000m"
+      proxyConnectTimeout: "8000"
+      proxyReadTimeout: "8000"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1500Mi"
+      limits:
+        cpu: "1000m"
+        memory: "3Gi"
+  sidekiq:
+    hpa:
+      enabled: true
+      cpu:
+        targetType: Value
+        targetAverageValue: 400m
+    replicaCount: 1
+    minReplicas: 1
+    maxReplicas: "40"
+    concurrency: "20"
+    resources:
+      requests:
+        cpu: "400m"
+        memory: "1Gi"
+      limits:
+        cpu: "1500m"
+        memory: "2Gi"
+
+  toolbox:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "200Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    # backups:
+    #   cron:
+    #     enabled: "false"
+    #     schedule: "@daily"
+    #     resources:
+    #       requests:
+    #         cpu: "200m"
+    #         memory: "200Mi"
+    #       limits:
+    #         cpu: "1000m"
+    #         memory: "2Gi"
+
+    #     persistence:
+    #       enabled: "true"
+    #       accessMode: ReadWriteOnce
+    #       useGenericEphemeralVolume: false
+    #       storageClass: "nfs-client"
+    #       size: 40Gi
+    #   objectStorage:
+    #     config:
+    #       secret: "biZiP3COrMLYTzflHWH6"
+    #       key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+  # Gitaly – хранит Git-репозитории GitLab
+  gitaly:
+    resources:
+      requests:
+        cpu: "300m"
+        memory: "300Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    persistence:
+      enabled: true
+      storageClass: nfs-client
+      size: 20Gi
+  gitlab-shell:
+    hpa:
+      enabled: false
+    replicaCount: 1
+    minReplicas: 1
+    maxReplicas: 1
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 2222
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+      limits:
+        cpu: "500m"
+        memory: "300Mi"
+  kas:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+      limits:
+        cpu: "200m"
+        memory: "200Mi"
+
+  gitlab-exporter:
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+      limits:
+        cpu: "500m"
+        memory: "200Mi"
+
+
+  appConfig:
+    lfs:
+      bucket: "gitlab-lfs"
+      path:   "lfs"
+      connection:
+        secret: "gitlab-s3-config"
+        key:    "s3.yml"
+    artifacts:
+      bucket: "gitlab-artifacts"
+      path:   "artifacts"
+      connection:
+        secret: "gitlab-s3-config"
+        key:    "s3.yml"
+    uploads:
+      bucket: "gitlab-uploads"
+      path:   "uploads"
+      connection:
+        secret: "gitlab-s3-config"
+        key:    "s3.yml"
+    packages:
+      bucket: "gitlab-packages"
+      path:   "packages"
+      connection:
+        secret: "gitlab-s3-config"
+        key:    "s3.yml"
+    backups:
+      bucket:    "gitlab-backups"
+      path:      "backups"
+      tmpBucket: "gitlab-backups"
+      tmpPath:   "tmp"
+
+
+gitlab-runner:
+  install: false
+

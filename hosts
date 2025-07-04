@@ -73,6 +73,8 @@
 192.168.1.126
 192.168.1.127
 192.168.1.128 # rancher
+192.168.1.150
+192.168.1.151
 
 [NOproxy]
 # localhost
@@ -80,12 +82,17 @@
 # 192.168.1.190
 
 [docker-doc-compose]
+192.168.1.103
+192.168.1.104
+192.168.1.105
+192.168.1.150
+192.168.1.151
+192.168.1.118 
+192.168.1.119
 192.168.1.100
 192.168.1.101
-192.168.1.102
-192.168.1.106
-192.168.1.107
-192.168.1.128
+192.168.1.108
+
 
 [swarm:children]
 swarmmaster
@@ -186,6 +193,14 @@ kub-worker2.test.local ansible_host=192.168.1.116
 kub-worker3.test.local ansible_host=192.168.1.117 
 s3-minio-1.test.local ansible_host=192.168.1.118
 s3-minio-2.test.local ansible_host=192.168.1.119
+#seaweedfs-master1.test.local ansible_host=192.168.1.121
+#seaweedfs-master2.test.local ansible_host=192.168.1.122
+#seaweedfs-master3.test.local ansible_host=192.168.1.123
+#seaweedfs-filer1.test.local ansible_host=192.168.1.124
+#seaweedfs-filer2.test.local ansible_host=192.168.1.125
+#seaweedfs-volume1.test.local ansible_host=192.168.1.126
+#seaweedfs-volume2.test.local ansible_host=192.168.1.127
+
 
 [nexus:children]
 nexus_server

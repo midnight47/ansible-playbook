@@ -1,0 +1,6 @@
+provider: AWS
+aws_access_key_id: "biZiP3COrMLYTzflHWH6"
+aws_secret_access_key: "LejhJ03w8wqsMJrDf8qeGgcHCPs3B8ml9s73GYg4"
+region: us-east-1 # обязательный, даже если MinIO, любое значение допустимо
+endpoint: "http://192.168.1.120:9000"
+path_style: true

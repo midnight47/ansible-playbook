@@ -1,0 +1,75 @@
+imagePullPolicy:               "Always"
+gitlabUrl:                     "https://gitlab.test.local"
+runnerRegistrationToken:       "glrt-t3_sFjXrYwuz-xDWPx_A-5a" # токен регистрации gitlab runner создаётся вручную в gitlab
+concurrent:                    "20"
+checkInterval:                 "1"
+terminationGracePeriodSeconds: "3600"
+certsSecretName:               "gitlab-ssl" # тут сапольный сертификат для gitlab
+rbac:
+  create: "true"
+  rules:
+    - resources: ["configmaps", "pods", "pods/attach", "secrets", "services"]
+      verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+    - apiGroups: [""]
+      resources: ["pods/exec"]
+      verbs: ["create", "patch", "delete"]
+  serviceAccount:
+    name: runner-gitlab-runner
+metrics:
+  enabled: "true"
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    labels:
+      release: kube-prometheus-stack
+service:
+  enabled: true
+
+#nodeSelector:
+
+
+serviceAccount:
+  create: true
+  name: runner-gitlab-runner
+
+runners:
+  serviceAccountName: runner-gitlab-runner
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "{{.Release.Namespace}}"
+        image = "ubuntu:22.04"
+        # build container
+        cpu = "300m"
+        memory = "300Mi"
+        cpu_limit    = "500m"
+        memory_limit = "500Mi"
+        cpu_limit_overwrite_max_allowed = "500m"
+        memory_limit_overwrite_max_allowed = "500Mi"
+        # service containers
+        service_cpu_limit    = "100m"
+        service_memory_limit = "100Mi"
+        service_cpu_limit_overwrite_max_allowed = "100m"
+        service_memory_limit_overwrite_max_allowed = "100Mi"
+        # helper container
+        helper_cpu_limit    = "100m"
+        helper_memory_limit = "100Mi"
+        helper_cpu_limit_overwrite_max_allowed = "100m"
+        helper_memory_limit_overwrite_max_allowed = "100Mi"
+        service_account = "runner-gitlab-runner"
+  image:           "ubuntu:22.04"
+  imagePullPolicy: "always"
+  privileged:      true
+  tags:            "test-runner"
+  runUntagged:     true
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "150Mi"
+    ephemeral-storage: "300Mi"
+  limits:
+    cpu: "400m"
+    memory: "350Mi"
+    ephemeral-storage: "600Mi"
+

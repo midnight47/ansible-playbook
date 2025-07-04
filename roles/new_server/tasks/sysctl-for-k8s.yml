@@ -1,0 +1,28 @@
+- name: Stat nf_conntrack_max
+  ansible.builtin.stat:
+    path: /proc/sys/net/netfilter/nf_conntrack_max
+  register: nf_conntrack_max_file
+
+- name: Stat legacy ip_conntrack_max
+  ansible.builtin.stat:
+    path: /proc/sys/net/ipv4/ip_conntrack_max
+  register: ip_conntrack_max_file
+
+- name: Ensure conntrack parameters are set and persisted
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+  loop:
+    - { name: 'net.netfilter.nf_conntrack_max',                 value: 524288 }
+    - { name: 'net.netfilter.nf_conntrack_tcp_timeout_established', value: 86400 }
+    - { name: 'net.ipv4.ip_conntrack_max',                      value: 524288 }
+  when: >
+    (item.name == 'net.netfilter.nf_conntrack_max'                 and nf_conntrack_max_file.stat.exists)
+    or
+    (item.name == 'net.netfilter.nf_conntrack_tcp_timeout_established' and nf_conntrack_max_file.stat.exists)
+    or
+    (item.name == 'net.ipv4.ip_conntrack_max'                      and ip_conntrack_max_file.stat.exists)

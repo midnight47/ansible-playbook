@@ -15,3 +15,5 @@
   tags: sudo
 - import_tasks: selinuxDisable.yml
   tags: disable Selinux
+- import_tasks: sysctl-for-k8s.yml
+  tags: k8s-sysctl

@@ -39,6 +39,11 @@ root@client:~/vault-autounseal# for i in `cat cluster-keys.json | jq -r ".unseal
 root@client:~/vault-autounseal# for i in `cat cluster-keys.json | jq -r ".unseal_keys_b64[]"`; do kubectl -n vault exec vault-2 -- vault operator unseal $i; done
 ```
 
+создаём конфигмап
+```
+root@client:~/vault-autounseal# kubectl create configmap vault-unseal-keys --from-file=cluster-keys.json -n vault
+```
+
 применяем cronjob для auto-unseal vault в k8s
 ```
 root@client:~/vault-autounseal# kubectl apply -f auto-unseal-cronjob.yaml
@@ -46,7 +51,7 @@ root@client:~/vault-autounseal# kubectl apply -f auto-unseal-cronjob.yaml
 
 теперь настраиваем transit autounseal 
 
-kubectl -n vault exec -ti vault-0 sh
+kubectl exec -it -n vault vault-0 -- sh
 / $ vault login
 / $ vault secrets enable transit
 / $ vault write -f transit/keys/vault-unseal-key
@@ -141,6 +146,12 @@ storage "raft" {
   }
 ```
 так же делаем на остальных виртуалках
+
+добавляем в хосты
+root@vault1:~# echo "192.168.1.191 vault-unseal.test.local" >> /etc/hosts
+root@vault2:~# echo "192.168.1.191 vault-unseal.test.local" >> /etc/hosts
+root@vault3:~# echo "192.168.1.191 vault-unseal.test.local" >> /etc/hosts
+
 далее рестуртауем их
 [root@vault1 ~]# systemctl restart vault
 [root@vault2 ~]# systemctl restart vault
@@ -232,4 +243,3 @@ root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultCon
 root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultAuth.yaml
 и сам наш секрет
 root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultSecret.yaml 
-

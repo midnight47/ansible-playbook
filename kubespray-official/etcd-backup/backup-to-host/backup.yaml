@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup
+  namespace: kube-system
+spec:
+  schedule: "0 2 * * *"            # каждый день в 02:00
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""    # только на мастерах
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+          securityContext:
+            runAsUser: 0
+          restartPolicy: OnFailure
+          volumes:
+            - name: etcd-ssl
+              hostPath:
+                path: /etc/ssl/etcd/ssl
+                type: Directory
+            - name: backup-dir
+              hostPath:
+                path: /var/backups/etcd
+                type: DirectoryOrCreate
+          containers:
+            - name: etcd-backup
+              image: bitnami/etcd:3
+              volumeMounts:
+                - name: etcd-ssl
+                  mountPath: /ssl
+                  readOnly: true
+                - name: backup-dir
+                  mountPath: /backup
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  export ETCDCTL_API=3
+                  etcdctl \
+                    --endpoints=https://127.0.0.1:2379 \
+                    --cacert=/ssl/ca.pem \
+                    --cert=/ssl/admin-$(hostname -f).pem \
+                    --key=/ssl/admin-$(hostname -f)-key.pem \
+                    snapshot save /backup/etcd-$(date +%Y%m%dT%H%M%S).db
