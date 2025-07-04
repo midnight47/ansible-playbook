@@ -1,0 +1,227 @@
+defaultRules:
+  create: true
+  rules:
+    general: false
+    kubernetesSystem: false
+  disabled: 
+    TooHighChurnRate: true
+    TooManyScrapeErrors: true
+victoria-metrics-operator:
+  enabled: true
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "500Mi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+  crd:
+    create: false
+    cleanup:
+      enabled: false
+  operator:
+    disable_prometheus_converter: false
+    enable_converter_ownership: true
+    useCustomConfigReloader: true
+    psp_auto_creation_enabled: false
+vmsingle:
+  enabled: true
+  # spec for VMSingle crd
+  rbac:
+    create: true
+  # https://github.com/VictoriaMetrics/operator/blob/master/docs/api.MD#vmsinglespec
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    path: /
+    hosts:
+      - vmsingle.test.local
+    tls:
+      - secretName: vm-tls
+        hosts:
+          - vmsingle.test.local
+  spec:
+    retentionPeriod: "12d"
+    replicaCount: 1
+    storage:
+      storageClassName: nfs-client
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "10Gi"
+    resources:
+      limits:
+        cpu: "2"
+        memory: "1500Mi"
+      requests:
+        cpu: "1"
+        memory: "1000Mi"
+
+    extraArgs:
+      maxLabelsPerTimeseries: "50"
+      memory.allowedPercent: "90" 
+      search.maxUniqueTimeseries: "5000000"
+      search.maxConcurrentRequests: "100"
+      search.maxQueryDuration: "300s"
+      search.maxSeries: "5000000"
+      search.cacheTimestampOffset: "12m"
+      search.logSlowQueryDuration: "25s"
+
+vmagent:
+  enabled: true
+  spec:
+    selectAllByDefault: true
+    extraArgs:
+      promscrape.streamParse: "true"
+      promscrape.dropOriginalLabels: "true"
+      promscrape.maxScrapeSize: "3355443200" 
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "500Mi"
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+
+kube-state-metrics:
+  enabled: true
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "500Mi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+
+
+
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+
+grafana:
+  enabled: true
+  adminPassword: "Secret123"
+  deploymentStrategy:
+    type: Recreate
+  rbac:
+    pspUseAppArmor: false
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    path: /
+    hosts:
+      - grafana.test.local
+    tls:
+      - secretName: vm-tls
+        hosts:
+          - grafana.test.local
+  env:
+    GF_SERVER_ROOT_URL: https://grafana.test.local
+    GF_USERS_ALLOW_SIGN_UP: false
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "500Mi"
+    requests:
+      cpu: "100m"
+      memory: "200Mi"
+
+  persistence:
+    enabled: true
+    type: pvc
+    size: "5Gi"
+    storageClassName: nfs-client
+    accessModes:
+      - ReadWriteOnce
+
+
+# Alertmanager parameters
+alertmanager:
+  enabled: true
+  rbac:
+    create: true
+  externalURL: "https://alertmanager.test.local"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    path: /
+    hosts:
+      - alertmanager.test.local
+    tls:
+      - secretName: vm-tls
+        hosts:
+          - nginx
+  spec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: nfs-client
+          accessModes: 
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "1Gi"
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "500Mi"
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+
+#Vmalert configuration
+vmalert:
+  enabled: true
+  externalURL: "https://alertmanager.test.local"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    path: /
+    hosts:
+      - vmalert.test.local
+    tls:
+      - secretName: vm-tls
+        hosts:
+          - vmalert.test.local
+  spec:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "500Mi"
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+
+prometheus-node-exporter:
+  enabled: true
+  rbac:
+    create: true
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "500Mi"
+    requests:
+      cpu: "50m"
+      memory: "50Mi"
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 9100
+    targetPort: 9100

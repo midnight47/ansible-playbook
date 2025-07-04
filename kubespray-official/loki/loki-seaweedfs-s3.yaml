@@ -10,14 +10,13 @@ loki:
       cluster_label: "loki"
     schema_config:
       configs:
-      - from: "2025-02-01"
+      - from: "2020-09-07"
         store: tsdb
         object_store: "s3"
         schema: "v13"
         index:
           period: "24h"
           prefix: "loki_index_"
-
   limits_config:
     retention_period: 14d
     ingestion_rate_mb: 4
@@ -36,9 +35,9 @@ loki:
       ruler: loki-bucket
       admin: loki-bucket
     s3:
-      endpoint: http://192.168.1.120:9000 # http://s3-minio.test.local:9000
-      accessKeyId: "ARMMLGAU2B2Q4K7H92OU"
-      secretAccessKey: "4AkkOeozat6SRS7yZbdIwuWnND3wa1LD3q+4vtmm"
+      endpoint: http://192.168.1.124:8333 # http://s3-minio.test.local:9000
+      accessKeyId: "dummy"
+      secretAccessKey: "dummy"
       insecure: true
       s3ForcePathStyle: true
       region: null
@@ -106,12 +105,12 @@ write:
       cpu: 100m
       memory: 300Mi
     limits:
-      cpu: 500m
-      memory: 800Mi
+      cpu: 100m
+      memory: 300Mi
   persistence:
     enabled: true
-    storageClass: nfs-client
-    size: 10Gi
+    storageClass: seaweedfs-storage
+    size: 5Gi
 
 read:
   replicas: 1
@@ -124,10 +123,10 @@ read:
     limits:
       cpu: 100m
       memory: 300Mi
-  # persistence:
-  #   enabled: false
-  #   storageClass: nfs-client
-  #   size: 10Gi
+  persistence:
+    enabled: true
+    storageClass: seaweedfs-storage
+    size: 5Gi
 
 backend:
   replicas: 1
@@ -142,8 +141,8 @@ backend:
       memory: 300Mi
   persistence:
     enabled: true
-    storageClass: nfs-client
-    size: 10Gi
+    storageClass: seaweedfs-storage
+    size: 5Gi
 
 lokiCanary:
   enabled: false
@@ -176,8 +175,7 @@ memberlist:
   service:
     publishNotReadyAddresses: true
   join_members:
-    - loki-memberlist.loki.svc.cluster.local:7946
-    #- loki-memberlist.loki.svc.cluster.local
+    - loki-memberlist.loki.svc.cluster.local
 
 
 # Disable caches

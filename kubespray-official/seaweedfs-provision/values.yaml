@@ -1,0 +1,52 @@
+# Значение seaweedfsFiler должно указывать на все доступные Filer-сервера
+# Формат: "<host1>:<port>,<host2>:<port>,..."
+seaweedfsFiler: "192.168.1.124:8888,192.168.1.125:8888"
+
+# Имя StorageClass, через который Pods будут брать PV
+storageClassName: "seaweedfs-storage"
+
+# Сделать ли этот StorageClass по-умолчанию в кластере
+isDefaultStorageClass: false
+
+# (опционально) Если у вас TLS между CSI-плагином и Filer-ами,
+# можно указать здесь имя Kubernetes Secret с сертификатом
+tlsSecret: ""
+
+# Настройки образов CSI-компонентов можно оставить по-умолчанию
+imagePullPolicy: "IfNotPresent"
+
+csiProvisioner:
+  image: registry.k8s.io/sig-storage/csi-provisioner:v3.5.0
+
+csiResizer:
+  image: registry.k8s.io/sig-storage/csi-resizer:v1.8.0
+
+csiAttacher:
+  enabled: true
+  image: registry.k8s.io/sig-storage/csi-attacher:v4.3.0
+
+csiNodeDriverRegistrar:
+  image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0
+
+csiLivenessProbe:
+  image: registry.k8s.io/sig-storage/livenessprobe:v2.10.0
+
+seaweedfsCsiPlugin:
+  image: chrislusf/seaweedfs-csi-driver:latest
+  securityContext:
+    privileged: true
+    capabilities:
+      add: ["SYS_ADMIN"]
+    allowPrivilegeEscalation: true
+
+driverName: seaweedfs-csi-driver
+
+controller:
+  replicas: 2
+
+# Опция dataLocality можно оставить none,
+# если не требуется привязка к топологиям нод
+dataLocality: "none"
+
+node:
+  enabled: true

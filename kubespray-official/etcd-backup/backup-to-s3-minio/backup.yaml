@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup-to-s3
+  namespace: kube-system
+spec:
+  schedule: "0 */12 * * *"            # каждые 12 часов
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: ""
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+          securityContext:
+            runAsUser: 0
+          restartPolicy: OnFailure
+
+          volumes:
+            - name: etcd-ssl
+              hostPath:
+                path: /etc/ssl/etcd/ssl
+                type: Directory
+            - name: temp-backup
+              emptyDir: {}
+
+          initContainers:
+            - name: snapshot
+              image: bitnami/etcd:3
+              volumeMounts:
+                - name: etcd-ssl
+                  mountPath: /ssl
+                  readOnly: true
+                - name: temp-backup
+                  mountPath: /snapshot
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  export ETCDCTL_API=3
+                  etcdctl \
+                    --endpoints=https://127.0.0.1:2379 \
+                    --cacert=/ssl/ca.pem \
+                    --cert=/ssl/admin-$(hostname -f).pem \
+                    --key=/ssl/admin-$(hostname -f)-key.pem \
+                    snapshot save /snapshot/etcd-$(date +%Y%m%dT%H%M%S).db
+
+          containers:
+            - name: uploader
+              image: amazon/aws-cli:latest
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-credentials
+                      key: access-key
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-credentials
+                      key: secret-key
+                - name: AWS_REGION
+                  value: us-east-1
+              volumeMounts:
+                - name: temp-backup
+                  mountPath: /snapshot
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  LATEST=$(ls /snapshot/etcd-*.db | sort | tail -n1)
+                  echo "Uploading $LATEST to etcd-snapshots..."
+                  aws s3api put-object \
+                    --bucket etcd-snapshots \
+                    --key "$(basename $LATEST)" \
+                    --body "$LATEST" \
+                    --endpoint-url http://192.168.1.120:9000

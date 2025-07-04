@@ -1,0 +1,22 @@
+controller:
+  enabled: true
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "50Mi"
+    limits:
+      cpu: 100m
+      memory: 100Mi
+
+speaker:
+  enabled: true
+  logLevel: info
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "50Mi"
+    limits:
+      cpu: 100m
+      memory: 100Mi
+crds:
+  enabled: true
