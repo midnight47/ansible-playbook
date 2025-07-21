@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-test-local
+  namespace: cert-manager
+spec:
+  secretName: wildcard-test-local-tls
+  commonName: "*.test.local"
+  dnsNames:
+    - "*.test.local"
+    - "test.local"        # если нужен и корневой домен
+  duration: 720h          # 30 дней
+  renewBefore: 168h       # за неделю до окончания
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+
