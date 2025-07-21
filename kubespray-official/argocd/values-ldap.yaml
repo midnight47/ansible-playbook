@@ -1,0 +1,159 @@
+global:
+  domain: argocd.test.local
+
+configs:
+  params:
+    server.insecure: true
+
+
+
+
+  # 1) ConfigMap argocd-cm
+  cm:
+    create: true
+    annotations: {}        # по надобности
+    url: https://argocd.test.local
+    dex.config: |
+      connectors:
+      - type: ldap
+        id: freeipa
+        name: FreeIPA
+        config:
+          host: 192.168.1.100:389
+          insecureNoSSL: true
+          insecureSkipVerify: true
+          bindDN: $LDAP_BIND_DN
+          bindPW: $LDAP_BIND_PW
+          usernamePrompt: Username
+          userSearch:
+            baseDN: "cn=users,cn=accounts,dc=test,dc=local"
+            filter: "(&(objectClass=posixAccount)(|(memberOf=cn=argocd-admin,cn=groups,cn=accounts,dc=test,dc=local)(memberOf=cn=argocd-ro-users,cn=groups,cn=accounts,dc=test,dc=local)))"
+            username: uid
+            idAttr: uid
+            emailAttr: uid
+            nameAttr: displayName
+          groupSearch:
+            baseDN: cn=groups,cn=accounts,dc=test,dc=local
+            filter: "(objectClass=groupOfNames)"
+            userMatchers:
+              - userAttr: DN
+                groupAttr: member
+            nameAttr: cn
+
+  rbac:
+    create: true
+    policy.csv: |
+      p, role:admin,    applications, *, *, allow
+      g, "argocd-admin", role:admin
+      p, role:readonly, applications, get, *, allow
+      g, "argocd-ro-users", role:readonly
+    policy.default: ""
+    policy.matchMode: glob
+    scopes: '[groups]'
+
+
+
+
+
+
+server:
+  replicas: 1
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: ca-issuer
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    extraTls:
+      - hosts:
+        - argocd.test.local
+        # Based on the ingress controller used secret might be optional
+        secretName: argocd-tls
+  resources:
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 50m
+     memory: 64Mi
+
+
+redis-ha:
+  enabled: true
+  haproxy:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+  redis:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+  sentinel:
+    resources:
+     requests:
+       memory: 200Mi
+       cpu: 100m
+     limits:
+       memory: 200Mi
+       cpu: 500m
+
+controller:
+  replicas: 1
+  resources:
+   limits:
+     cpu: 500m
+     memory: 512Mi
+   requests:
+     cpu: 250m
+     memory: 150Mi
+
+
+repoServer:
+  replicas: 2
+  resources:
+   limits:
+     cpu: 50m
+     memory: 128Mi
+   requests:
+     cpu: 10m
+     memory: 64Mi
+
+applicationSet:
+  replicas: 2
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+dex:
+  resources:
+   limits:
+     cpu: 50m
+     memory: 64Mi
+   requests:
+     cpu: 10m
+     memory: 32Mi
+
+  env:
+    - name: LDAP_BIND_DN
+      valueFrom:
+        secretKeyRef:
+          name: argocd-ldap-secret
+          key: ldap.bindDN
+    - name: LDAP_BIND_PW
+      valueFrom:
+        secretKeyRef:
+          name: argocd-ldap-secret
+          key: ldap.bindPW

@@ -57,3 +57,38 @@ kubectl get pod -n gitlab gitlab-runner-5448bd476d-x8vbs
 NAME                             READY   STATUS    RESTARTS   AGE
 gitlab-runner-5448bd476d-x8vbs   1/1     Running   0          34m
 ```
+
+
+==================================================
+
+если нужно настроить ldap авторизацию, используйте секрет:
+gitlab-ldap-secret.yaml
+в котором пароль от системного пользователя gitlab а в качестве values используйте gitlab-ldap.yaml  
+
+```
+global:
+  appConfig:
+    ldap:
+      enabled: true
+      servers:
+        main:
+          label: "FreeIPA LDAP"
+          host: "192.168.1.100"
+          port: 389
+          uid: "uid"  # в FreeIPA имя юзера в атрибуте uid
+          bind_dn: "uid=gitlab,cn=sysaccounts,cn=etc,dc=test,dc=local"
+          password:
+            secret: gitlab-ldap-secret
+            key: ldap.bindPW
+          # Шифрование: plain – без TLS; start_tls – через StartTLS; simple_tls – LDAPS
+          encryption: "plain"
+          verify_certificates: false
+          # Базовая точка поиска пользователей в FreeIPA
+          base: "cn=accounts,dc=test,dc=local"
+          # Ограничиваем вход только членами группы gitlab
+          user_filter: "(memberOf=cn=gitlab,cn=groups,cn=accounts,dc=test,dc=local)"
+          # По логину используем uid (или поставьте allow_username_or_email_login: true)
+          allow_username_or_email_login: false
+          block_auto_created_users: false
+```
+

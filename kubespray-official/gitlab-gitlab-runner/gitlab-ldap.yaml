@@ -43,7 +43,33 @@ global:
       connection:
         secret: "gitlab-s3-config"
         key: "s3.yml"
-  
+
+
+    ldap:
+      enabled: true
+      servers:
+        main:
+          label: "FreeIPA LDAP"
+          host: "192.168.1.100"
+          port: 389
+          uid: "uid"  # в FreeIPA имя юзера в атрибуте uid
+          bind_dn: "uid=gitlab,cn=sysaccounts,cn=etc,dc=test,dc=local"
+          password:
+            secret: gitlab-ldap-secret
+            key: ldap.bindPW
+          # Шифрование: plain – без TLS; start_tls – через StartTLS; simple_tls – LDAPS
+          encryption: "plain"
+          verify_certificates: false
+          # Базовая точка поиска пользователей в FreeIPA
+          base: "cn=accounts,dc=test,dc=local"
+          # Ограничиваем вход только членами группы gitlab
+          user_filter: "(memberOf=cn=gitlab,cn=groups,cn=accounts,dc=test,dc=local)"
+          # По логину используем uid (или поставьте allow_username_or_email_login: true)
+          allow_username_or_email_login: false
+          block_auto_created_users: false
+
+
+
   minio:
     enabled: false
   serviceAccount:
@@ -176,7 +202,7 @@ gitlab:
     resources:
       requests:
         cpu: "500m"
-        memory: "1500Mi"
+        memory: "800Mi"
       limits:
         cpu: "1000m"
         memory: "3Gi"
@@ -193,7 +219,7 @@ gitlab:
     resources:
       requests:
         cpu: "400m"
-        memory: "1Gi"
+        memory: "900Mi"
       limits:
         cpu: "1500m"
         memory: "2Gi"
@@ -309,7 +335,6 @@ gitlab:
       path:      "backups"
       tmpBucket: "gitlab-backups"
       tmpPath:   "tmp"
-
 
 gitlab-runner:
   install: false
