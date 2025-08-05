@@ -1,0 +1,80 @@
+---
+scope: "{{ patroni_cluster_name }}"
+name: "{{ inventory_hostname }}"
+
+watchdog:
+  mode: "{{ watchdog_mode }}"
+
+restapi:
+  listen: "0.0.0.0:{{ patroni_restapi_port }}"
+  connect_address: "{{ ansible_host }}:{{ patroni_restapi_port }}"
+
+etcd:
+  hosts:
+{% for host in groups['etcd'] | sort %}
+    - "{{ hostvars[host]['ansible_host'] | default(host) }}:2379"
+{% endfor %}
+  protocol: http
+  use_proxies: false
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        archive_mode: "on"
+        wal_level: hot_standby
+        max_wal_senders: 10
+        wal_keep_segments: 8
+        archive_timeout: "1800s"
+        max_replication_slots: 5
+        hot_standby: "on"
+        wal_log_hints: "on"
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+
+pg_hba:
+  - local   all             postgres                    peer
+  - host    replication     repl      {{ pg_hba_subnet }}      md5
+  - host    replication     repl      127.0.0.1/32             trust
+  - host    all             all       0.0.0.0/0                md5
+
+authentication:
+  replication:
+    username: repl
+    password: "{{ replication_password }}"
+  superuser:
+    username: postgres
+    password: "{{ superuser_password }}"
+
+postgresql:
+  pgpass: /var/lib/postgresql/{{ postgresql_major_version }}/.pgpass
+  listen: "0.0.0.0:{{ postgresql_port }}"
+  connect_address: "{{ ansible_host }}:{{ postgresql_port }}"
+  data_dir: "/var/lib/postgresql/{{ postgresql_major_version }}/data/"
+  bin_dir: "/usr/lib/postgresql/{{ postgresql_major_version }}/bin/"
+  create_replica_methods:
+    - basebackup
+  use_unix_socket: true
+  parameters:
+    unix_socket_directories: '/var/run/postgresql'
+  pg_rewind:
+    username: postgres
+    password: "{{ superuser_password }}"
+  pg_hba:
+    - local all postgres peer
+    - host replication repl {{ pg_hba_subnet }} md5
+    - host replication repl 127.0.0.1/32 trust
+    - host all all 0.0.0.0/0 md5
+  replication:
+    username: repl
+    password: "{{ replication_password }}"
+  superuser:
+    username: postgres
+    password: "{{ superuser_password }}"

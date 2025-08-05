@@ -1,7 +1,32 @@
 ---
-repo_server_lan: '10.230.144.18'
-repo_server_dmz: '10.242.231.5'
-idrsadmz: 'id_rsadmz.pub'
-idrsalan: 'id_rsalan.pub'
-idrsabilling: 'id_rsabilling.pub'
-idrsatest: 'id_rsatest.pub'
+# Default variables for Patroni role
+
+patroni_cluster_name: "my_patroni_cluster" 
+
+replication_password: replication_password
+superuser_password: superuser_password
+
+haproxy_port: 5432
+
+# PostgreSQL listener port
+postgresql_port: 5430
+
+# Subnet for replication in pg_hba
+pg_hba_subnet: 192.168.1.0/24
+
+# Patroni REST API port
+patroni_restapi_port: 8008
+
+# Watchdog mode: off | automatic | required
+watchdog_mode: "off"
+
+# Major version of PostgreSQL
+postgresql_major_version: 17
+
+# Virtual IP managed by Keepalived / HAProxy binds here
+virtual_ip: 192.168.1.155
+
+# Keepalived instance ID per node
+keepalived_id: 1
+
+

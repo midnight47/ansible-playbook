@@ -1,14 +1,43 @@
-- name: Install keepalived
+---
+# Install Keepalived, which provides VRRP-based failover between HAProxy instances.
+
+- name: Install keepalived on Debian/Ubuntu
+  apt:
+    name: keepalived
+    state: present
+    update_cache: yes
+  notify:
+    - restart keepalived
+  when: ansible_os_family == 'Debian'
+
+- name: Install keepalived on RedHat
   yum:
     name: keepalived
     state: present
   notify:
     - restart keepalived
+  when: ansible_os_family == 'RedHat'
 
 - name: put keepalived service version 2
   copy:
     src: ../templates/keepalived
     dest: /usr/sbin/
     backup: yes
+  # Only overwrite the keepalived binary on RedHat-based systems.
+  when: ansible_os_family == 'RedHat'
 
 
+- name: assign keepalived role
+  # Determine whether the current host should act as MASTER or BACKUP.
+  # The first host in the `patroni` group is elected MASTER; all others become BACKUP.
+  set_fact:
+    keepalived_check: "{{ 'MASTER' if inventory_hostname == groups['patroni'][0] else 'BACKUP' }}"
+    keepalived_priority_check: "{{ 100 if inventory_hostname == groups['patroni'][0] else 90 }}"
+
+- name: put keepalived_config
+  template:
+    src: ../templates/keepalived.conf
+    dest: /etc/keepalived/keepalived.conf
+    backup: yes
+  notify: 
+    - restart keepalived

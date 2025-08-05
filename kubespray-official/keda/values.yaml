@@ -1,0 +1,32 @@
+operator:
+  replicaCount: 1
+
+metricsServer:
+  replicaCount: 1
+
+webhooks:
+  replicaCount: 1
+
+resources:
+  operator:
+    limits:
+      cpu: 1
+      memory: 1000Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  metricServer:
+    limits:
+      cpu: 1
+      memory: 1000Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  webhooks:
+    limits:
+      cpu: 50m
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 10Mi
+

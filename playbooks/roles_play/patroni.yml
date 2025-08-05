@@ -1,22 +1,5 @@
-- hosts: patronicluster
-  become: true
-  ignore_errors: yes
-  become_method: sudo
-  gather_facts: yes
-  vars:
-    - etcd1: "192.168.1.122"      # кворум etcd который будет решать кто является мастером
-    - etcd2: "192.168.1.123"      # кворум etcd который будет решать кто является мастером
-    - etcd3: "192.168.1.121"      # кворум etcd который будет решать кто является мастером
-    - patroni1: "192.168.1.122"   # тут будет установлена сама база postgresql
-    - patroni2: "192.168.1.123"   # тут будет установлена сама база postgresql
-    - ip_addr: "{{ ansible_default_ipv4.address }}" 
-    - patroni_cluster_name: "cluster_patrony"  # имя нашего кластера
-    - balance1: "192.168.1.120"   # балансировщик
-    - balance2: "192.168.1.121"   # балансировщик
-    - keepalived_id: "2"          # данные id не должен совпадать с другими id keepalived в одной подсети.
-    - virtual_ip: "192.168.1.124" # виртуальный адрес на который будут идти все обращения
-    - proxy: false # (true/false) ставим кластер через прокси сервер или с открытым доступом
-    - http_proxy: "http://192.168.1.179:3128"
-    - https_proxy: "http://192.168.1.179:3128"
+- name: Deploy highly available PostgreSQL cluster
+  hosts: patronicluster
+  become: yes
   roles:
     - patroni

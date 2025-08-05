@@ -5,5 +5,11 @@
   service: name=keepalived state=restarted enabled=yes
 - name: restart haproxy
   service: name=haproxy state=restarted enabled=yes
-
-
+- name: restart etcd
+  service: name=etcd state=restarted enabled=yes
+- name: Restart Patroni
+  become: true
+  service:
+    name: patroni
+    state: restarted
+    enabled: yes

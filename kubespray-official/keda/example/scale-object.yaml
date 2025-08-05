@@ -1,0 +1,26 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: v2-ingress-requests
+  namespace: app1
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: app1-test-app-keda
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://vmsingle-vmks-victoria-metrics-k8s-stack.monitoring.svc.cluster.local:8428
+      metricName: ingress_requests
+      query:  >-
+        sum(
+          increase(
+            nginx_ingress_controller_requests{ingress="app1-test-app-keda"}[2m]
+          )
+        )
+      threshold: "100"
+
