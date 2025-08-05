@@ -1,5 +1,64 @@
-  - name: Install etcd
-    yum:
-      name: ['gcc', 'python-devel', 'etcd', 'python-requests', 'python-urllib3' ]
-      state: present
+- name: Install etcd and dependencies on Debian/Ubuntu
+  apt:
+    name:
+      - etcd-server
+      - etcd-client
+      - gcc
+      - python3-dev
+      - python3-requests
+      - python3-urllib3
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Install etcd and dependencies on RedHat
+  yum:
+    name: [ 'gcc', 'python-devel', 'etcd', 'python-requests', 'python-urllib3' ]
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+
+################################ configure etcd ################################
+
+- name: set etcd node name
+  set_fact:
+    etcd_check: "{{ inventory_hostname }}"
+
+- name: ensure etcd configuration directory exists on RedHat
+  file:
+    path: /etc/etcd
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name: copy etcd configuration
+  template:
+    src: ../templates/etcd.conf
+    dest: /etc/default/etcd
+    backup: yes
+  notify: 
+    - restart etcd
+  register: etcd_conf
+
+
+- name: Перезапустить etcd, если конфиг изменился
+  service:
+    name: etcd
+    state: restarted
+    enabled: yes
+  when:
+    - etcd_conf is changed
+
+
+- name: Wait for ETCD to accept connections
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: 2379
+    state: started
+    delay: 5
+    timeout: 60
+  when: inventory_hostname in groups['etcd']
 

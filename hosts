@@ -46,35 +46,39 @@
 
 
 [all_servers]
-192.168.1.100 # freeipa1
-192.168.1.101 # freeipa2
-192.168.1.102 # nexus
-192.168.1.103 # vault1
-192.168.1.104 # vault2
-192.168.1.105 # vault3
-192.168.1.106 # gitlab
-192.168.1.107 # gitlab-runner
-192.168.1.108 # nfs
-192.168.1.109 # gluster-fs1
-192.168.1.110 # gluster-fs2
-192.168.1.112 # kub-master1
-192.168.1.113 # kub-master2
-192.168.1.114 # kub-master3
-192.168.1.115 # kub-worker1
-192.168.1.116 # kub-worker2
-192.168.1.117 # kub-worker3
-192.168.1.118 # s3-minio1
-192.168.1.119 # s3-minio2
-192.168.1.121
-192.168.1.122
-192.168.1.123
-192.168.1.124
-192.168.1.125
-192.168.1.126
-192.168.1.127
-192.168.1.128 # rancher
-192.168.1.150
-192.168.1.151
+; 192.168.1.100 # freeipa1
+; 192.168.1.101 # freeipa2
+; 192.168.1.102 # nexus
+; 192.168.1.103 # vault1
+; 192.168.1.104 # vault2
+; 192.168.1.105 # vault3
+; 192.168.1.106 # gitlab
+; 192.168.1.107 # gitlab-runner
+; 192.168.1.108 # nfs
+; 192.168.1.109 # gluster-fs1
+; 192.168.1.110 # gluster-fs2
+; 192.168.1.112 # kub-master1
+; 192.168.1.113 # kub-master2
+; 192.168.1.114 # kub-master3
+; 192.168.1.115 # kub-worker1
+; 192.168.1.116 # kub-worker2
+; 192.168.1.117 # kub-worker3
+; 192.168.1.118 # s3-minio1
+; 192.168.1.119 # s3-minio2
+; 192.168.1.121
+; 192.168.1.122
+; 192.168.1.123
+; 192.168.1.124
+; 192.168.1.125
+; 192.168.1.126
+; 192.168.1.127
+; 192.168.1.128 # rancher
+; 192.168.1.150
+; 192.168.1.151
+; 192.168.1.152 # patrony1
+; 192.168.1.153 # patrony2
+; 192.168.1.154 # patrony3
+
 
 [NOproxy]
 # localhost
@@ -140,14 +144,21 @@ mysql
 [patronicluster:children]
 etcd
 patroni
-balance
 [etcd]
+etcd1 ansible_host=192.168.1.152
+etcd2 ansible_host=192.168.1.153
+etcd3 ansible_host=192.168.1.154
 [patroni]
-[balance]
+db1 ansible_host=192.168.1.152
+db2 ansible_host=192.168.1.153
+# db3 ansible_host=10.0.0.13   # если добавите ещё реплики
+
+
 
 
 [databases]
 192.168.1.201
+
 
 [gitlab:children]
 gitlab-server

@@ -1,9 +1,25 @@
-  - name: install RPM from pgbouncer
-    yum:
-      name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-      state: present
+# ---
+# # Install PgBouncer on both RedHat and Debian/Ubuntu systems without using
+# # a proxy.  For RedHat we enable the PGDG repository and then install
+# # `pgbouncer`.  For Debian the package is available via the PGDG apt
+# # repository or distribution repositories.
 
-  - name: Install pgbouncer
-    yum:
-      name: pgbouncer
-      state: present
+# - name: install PGDG repository for PgBouncer on RedHat
+#   yum:
+#     name: https://download.postgresql.org/pub/repos/yum/pgdg-redhat-repo-latest.noarch.rpm
+#     state: present
+#   when: ansible_os_family == 'RedHat'
+
+# - name: Install PgBouncer on RedHat
+#   yum:
+#     name: pgbouncer
+#     state: present
+#   when: ansible_os_family == 'RedHat'
+
+# - name: Install PgBouncer on Debian/Ubuntu
+#   apt:
+#     name: pgbouncer
+#     state: present
+#     update_cache: yes
+#   when: ansible_os_family == 'Debian'
+

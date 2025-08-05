@@ -1,0 +1,34 @@
+global
+    log /dev/log    local0
+    maxconn 4096
+    user haproxy
+    group haproxy
+
+defaults
+    log     global
+    mode    tcp
+    option  tcplog
+    retries 3
+    timeout connect 5s
+    timeout client  60s
+    timeout server  60s
+
+frontend postgres
+    bind *:{{ haproxy_port }}
+    default_backend postgres_backend
+
+backend postgres_backend
+    mode tcp
+    balance roundrobin
+
+    # шлём только строку запроса
+    option httpchk GET /master HTTP/1.1
+    # отдельно даём заголовок Host
+    http-check send hdr Host localhost\r\n
+    # проверяем, что код 200
+    http-check expect status 200
+
+{% for host in groups['patroni'] %}
+    server {{ host }} {{ hostvars[host].ansible_host }}:{{ postgresql_port }} check port {{ patroni_restapi_port }} inter 3s rise 2 fall 2
+{% endfor %}
+

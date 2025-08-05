@@ -1,46 +1,125 @@
-  - name: install pip through proxy "{{ http_proxy }}"
-    yum:
-      name: python-pip
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
-  - name: install the package, force upgrade through proxy "{{ http_proxy }}"
-    pip:
-      name: pip
-      executable: pip
-      state: latest
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
-  - name: install setuptools through proxy "{{ http_proxy }}"
-    pip:
-      name: setuptools
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
+- name: install pip on Debian/Ubuntu
+  apt:
+    name: python3-pip
+    state: present
+    update_cache: yes
+  environment:
+    # Разрешаем pip «ломать» системные пакеты (PEP 668)
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+  when: ansible_os_family == 'Debian'
 
-  - name: install the package, force upgrade through proxy "{{ http_proxy }}"
-    pip: 
-      name: setuptools 
-      extra_args: --upgrade
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
-  - name: install python packages flake8 through proxy "{{ http_proxy }}"
-    pip: 
-      name: "flake8"
-    environment:
-      http_proxy: '{{ http_proxy }}'
-      https_proxy: '{{ https_proxy }}'
-  - name: install python packages psycopg2-binary through proxy "{{ http_proxy }}"
-    pip:
-      name: "psycopg2-binary"
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
-  - name: install python packages urllib3 patroni[etcd] through proxy "{{ http_proxy }}"
-    pip:
-      name: ['urllib3>=1.19.1', 'patroni[etcd]', 'cryptography', 'certifi', 'idna', 'pyOpenSSL']
-    environment:
-      http_proxy: "{{ http_proxy }}"
-      https_proxy: "{{ https_proxy }}"
+- name: install pip on RedHat
+  yum:
+    name: python-pip
+    state: present
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+  when: ansible_os_family == 'RedHat'
+
+- name: set pip executable fact
+  set_fact:
+    pip_executable: "{{ 'pip' if ansible_os_family == 'RedHat' else 'pip3' }}"
+
+- name: upgrade pip to latest
+  pip:
+    name: pip
+    executable: "{{ pip_executable }}"
+    state: latest
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: install setuptools
+  pip:
+    name: setuptools
+    executable: "{{ pip_executable }}"
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: upgrade setuptools 
+  pip:
+    name: setuptools
+    extra_args: --upgrade
+    executable: "{{ pip_executable }}"
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: install python packages flake8 
+  pip:
+    name: "flake8"
+    executable: "{{ pip_executable }}"
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: install python packages psycopg2-binary
+  pip:
+    name: "psycopg2-binary"
+    executable: "{{ pip_executable }}"
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: install python packages urllib3 patroni[etcd] 
+  pip:
+    name:
+      - 'urllib3>=1.19.1'
+      - 'patroni[etcd]'
+      - 'cryptography'
+      - 'certifi'
+      - 'idna'
+      - 'pyOpenSSL'
+    executable: "{{ pip_executable }}"
+  environment:
+    PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+- name: Render Patroni configuration
+  become: true
+  template:
+    src: patroni.yml.j2
+    dest: /etc/patroni.yml
+    owner: postgres
+    group: postgres
+    mode: '0644'
+
+- name: put patroni.service systemd unit
+  template:
+    src: ../templates/patroni.service 
+    dest: /etc/systemd/system/patroni.service
+    backup: yes
+  register: patroni_service
+
+- name: Reload daemon definitions
+  command: /usr/bin/systemctl daemon-reload
+  tags: patroni
+  when:
+    - patroni_service is changed
+
+- name: Start Patroni on primary node
+  service:
+    name: patroni
+    state: started
+    enabled: yes
+  when: inventory_hostname == groups['patroni'][0]
+
+- name: Wait for primary Postgres to accept connections
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ postgresql_port }}"
+    state: started
+    delay: 5
+    timeout: 60
+  when: inventory_hostname == groups['patroni'][0]
+
+# 2) Then start Patroni on the replica nodes
+- name: Start Patroni on replica nodes
+  service:
+    name: patroni
+    state: started
+    enabled: yes
+  when: inventory_hostname != groups['patroni'][0]
+
+# 3) Finally, ensure Patroni is running everywhere
+- name: Ensure Patroni is running
+  service:
+    name: patroni
+    state: started
+    enabled: yes
+  when: inventory_hostname in groups['patroni']

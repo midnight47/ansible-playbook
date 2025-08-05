@@ -1,7 +1,31 @@
-- name: Install haproxy
+---
+# Install HAProxy on both Debian/Ubuntu and RedHat systems.  HAProxy is used
+# as a TCP load balancer for the Patroni-managed PostgreSQL cluster.  We
+# differentiate package managers based on the OS family.
+
+- name: Install haproxy on Debian/Ubuntu
+  apt:
+    name: haproxy
+    state: present
+    update_cache: yes
+  notify:
+    - restart haproxy
+  when: ansible_os_family == 'Debian'
+
+- name: Install haproxy on RedHat
   yum:
     name: haproxy
     state: present
   notify:
     - restart haproxy
+  when: ansible_os_family == 'RedHat'
 
+- name: Render HAProxy configuration
+  become: true
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart haproxy
