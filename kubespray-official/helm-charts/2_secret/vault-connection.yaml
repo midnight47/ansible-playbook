@@ -1,0 +1,8 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault-connection
+  namespace: kube-system
+spec:
+  address: "https://192.168.1.111:8200"
+  skipTLSVerify: true 

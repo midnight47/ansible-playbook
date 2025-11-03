@@ -1,0 +1,88 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "common-chart.fullname" . }}{{- if .Values.keda.nameSuffix }}-{{ .Values.keda.nameSuffix }}{{- end }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ default "apps/v1" .Values.keda.scaleTargetRef.apiVersion }}
+    kind: {{ default "Deployment" .Values.keda.scaleTargetRef.kind }}
+    name: {{ default (include "common-chart.fullname" .) .Values.keda.scaleTargetRef.name }}
+
+  {{- with .Values.keda.pollingInterval }}
+  pollingInterval: {{ . }}
+  {{- end }}
+  {{- with .Values.keda.cooldownPeriod }}
+  cooldownPeriod: {{ . }}
+  {{- end }}
+  {{- with .Values.keda.minReplicaCount }}
+  minReplicaCount: {{ . }}
+  {{- end }}
+  {{- with .Values.keda.maxReplicaCount }}
+  maxReplicaCount: {{ . }}
+  {{- end }}
+  {{- with .Values.keda.restoreToOriginalReplicaCount }}
+  restoreToOriginalReplicaCount: {{ . }}
+  {{- end }}
+
+  {{- with .Values.keda.fallback }}
+  {{- if or (hasKey . "failureThreshold") (hasKey . "replicas") }}
+  fallback:
+    {{- if hasKey . "failureThreshold" }}
+    failureThreshold: {{ .failureThreshold }}
+    {{- end }}
+    {{- if hasKey . "replicas" }}
+    replicas: {{ .replicas }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+
+  {{- with .Values.keda.scalingStrategy }}
+  scalingStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- $adv := .Values.keda.advanced }}
+  {{- $sm := and $adv $adv.scalingModifiers }}
+  {{- if or $adv $sm }}
+  advanced:
+    {{- with $adv.horizontalPodAutoscalerConfig }}
+    horizontalPodAutoscalerConfig:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+    {{- if and $sm $sm.formula }}
+    scalingModifiers:
+      formula: {{ $sm.formula | quote }}
+      {{- with $sm.target }}
+      target: {{ . | quote }}
+      {{- end }}
+      {{- with $sm.activationTarget }}
+      activationTarget: {{ . | quote }}
+      {{- end }}
+      {{- with $sm.metricType }}
+      metricType: {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+  triggers:
+  {{- range $i, $t := .Values.keda.triggers }}
+    - type: {{ $t.type | quote }}
+      {{- if $t.name }}
+      name: {{ $t.name | quote }}
+      {{- end }}
+      {{- if $t.metricType }}
+      metricType: {{ $t.metricType | quote }}
+      {{- end }}
+      metadata:
+        {{- toYaml $t.metadata | nindent 8 }}
+      {{- with $t.authenticationRef }}
+      authenticationRef:
+        {{- if .name }}name: {{ .name | quote }}{{- end }}
+        {{- if .kind }}kind: {{ .kind | quote }}{{- end }}
+      {{- end }}
+  {{- end }}
+{{- end }}

@@ -65,6 +65,11 @@ path "transit/encrypt/vault-unseal-key" {
 path "transit/decrypt/vault-unseal-key" {
   capabilities = [ "update" ]
 }
+
+path "transit/keys/vault-unseal-key" { 
+  capabilities = ["read"] 
+}
+
 ```
 /tmp $ vault policy write unseal-policy transit-policy.yaml
 /tmp $ vault token create -policy=unseal-policy
@@ -243,3 +248,71 @@ root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultCon
 root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultAuth.yaml
 и сам наш секрет
 root@client:~/vault-autounseal# kubectl apply -f vault-secrets-operator-VaultSecret.yaml 
+
+
+
+
+
+
+##################################################################################################################
+
+
+
+
+если токен сдох и основной волт не распечатывается то нужно его обновить, для этого:
+
+root@kub-master1:~# kubectl exec -ti -n vault vault-0 -- sh
+/ $ vault login
+
+проверяем что транзит создан
+/ $ vault secrets list | grep transit
+transit/      transit      transit_1622485e      n/a
+
+/ $ vault token create -policy=unseal-policy -period=90000h -orphan
+WARNING! The following warnings were returned from Vault:
+
+  * period of "90000h" exceeded the effective max_ttl of "768h"; period value
+  is capped accordingly
+
+Key                  Value
+---                  -----
+token                hvs.CAESIJ4oY7ZiA7rRwJIBUmIafMpEa--RPzdZMjjFzJdfN0-3Gh4KHGh2cy4wOTduMTB5OG1SenIxNk9YdTJHZmhDOFM
+token_accessor       Bl3c2lPN6OzkkAuhfKPZwk5h
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "unseal-policy"]
+identity_policies    []
+policies             ["default" "unseal-policy"]
+
+токен максимум создаётся на 768h изменим это число:
+/ $ vault auth tune -max-lease-ttl=90000h token/
+Success! Tuned the auth method at: token/
+
+и создадим новый токен:
+
+/ $ vault token create -policy=unseal-policy -period=90000h -orphan
+Key                  Value
+---                  -----
+token                hvs.CAESIJGcJoJ3xhrepURua7Rvte2u3TCGJ7t1q3XIMaZFPkjwGh4KHGh2cy5nRHZUWVZ0elowYmE3REZpbFVkS2JCVGw
+token_accessor       bkfa8CPHegDJbziHIOFWDdSs
+token_duration       90000h
+token_renewable      true
+token_policies       ["default" "unseal-policy"]
+identity_policies    []
+policies             ["default" "unseal-policy"]
+
+теперь этот токен раскидаем по волтам:
+root@vault1:~# cat /etc/vault.d/vault.hcl 
+
+```
+  seal "transit" {
+    address = "http://vault-unseal.test.local:80"
+    token   = "hvs.CAESIJGcJoJ3xhrepURua7Rvte2u3TCGJ7t1q3XIMaZFPkjwGh4KHGh2cy5nRHZUWVZ0elowYmE3REZpbFVkS2JCVGw"
+    key_name = "vault-unseal-key"
+    mount_path = "transit/"
+    disable_renewal = "false"
+    tls_skip_verify = "true"
+  }
+  ```
+
+  

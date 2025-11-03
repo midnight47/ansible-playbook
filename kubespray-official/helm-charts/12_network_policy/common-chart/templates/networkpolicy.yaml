@@ -1,0 +1,52 @@
+{{- if and .Values.networkPolicy .Values.networkPolicy.enabled }}
+{{- $root := . }}
+{{- $items := default (list) .Values.networkPolicy.items }}
+
+{{- range $i, $p := $items }}
+  {{- $raw := required (printf "networkPolicy.items[%d].name is required" $i) $p.name }}
+  {{- $name := (printf "%s-%s" (include "common-chart.fullname" $root) $raw) | trunc 63 | trimSuffix "-" }}
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ $name }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" $root | nindent 4 }}
+  {{- with $p.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  # По умолчанию — выбираем Pod'ы текущего релиза; можно переопределить в values.podSelector
+  podSelector:
+    {{- if $p.podSelector }}
+    {{- toYaml $p.podSelector | nindent 4 }}
+    {{- else }}
+    matchLabels:
+      {{- include "common-chart.selectorLabels" $root | nindent 6 }}
+    {{- end }}
+
+  # policyTypes: если явно заданы — используем их; иначе выводим на основе присутствующих ingress/egress
+  {{- if $p.policyTypes }}
+  policyTypes:
+    {{- toYaml $p.policyTypes | nindent 2 }}
+  {{- else }}
+  policyTypes:
+    {{- if or ($p.ingress) (hasKey $p "ingress") }}- Ingress{{- end }}
+    {{- if or ($p.egress)  (hasKey $p "egress")  }}- Egress{{- end }}
+  {{- end }}
+
+  {{- if hasKey $p "ingress" }}
+  ingress:
+    {{- toYaml $p.ingress | nindent 4 }}
+  {{- end }}
+
+  {{- if hasKey $p "egress" }}
+  egress:
+    {{- toYaml $p.egress | nindent 4 }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}
+

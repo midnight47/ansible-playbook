@@ -104,10 +104,10 @@ write:
   resources:
     requests:
       cpu: 100m
-      memory: 300Mi
+      memory: 800Mi
     limits:
       cpu: 500m
-      memory: 800Mi
+      memory: 1500Mi
   persistence:
     enabled: true
     storageClass: nfs-client

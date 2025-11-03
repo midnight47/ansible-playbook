@@ -1,0 +1,116 @@
+replicaCount: 1
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "app"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Дополнительные (пользовательские) тома/маунты, если нужны
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+container:
+  name: app
+  ports:
+    - name: http
+      containerPort: 80
+      protocol: TCP
+
+# =====================  VAULT + VSO  =====================
+# Минимум, что нужно заполнить: secret.name и vault.secretFullPath.
+vault_secret:
+  enabled: true
+
+  # Имя k8s Secret, куда VSO запишет данные, и который подключим в Pod
+  name: "app1-secret"          # <— ТЫ МЕНЯЕШЬ
+
+  # Полный путь секрета в Vault вида "<mount>/<...>/<leaf>"
+  # примеры: "dev/service/app1" или "prod/service/app1"
+  secretFullPath: "app/service/app1"    # <— ТЫ МЕНЯЕШЬ
+
+  # Тип KV в Vault: kv-v1 или kv-v2
+  type: "kv-v1"
+
+  # Ссылка на VaultConnection (ns/name или просто name, если в том же ns)
+  vaultConnectionRef: "kube-system/vault-connection"
+
+  # Точка монтирования метода аутентификации в Vault
+  authMount: "kubernetes"
+
+  # Роль в Vault. По умолчанию используем универсальную роль для всех ns
+  # (см. команды ниже) — ns-scoped-read
+  role: "ns-scoped-read"
+
+  # Как часто перечитывать секрет
+  refreshAfter: "30s"
+
+  audiences:
+    - "https://kubernetes.default.svc"
+
+  # Подключение секрета в Pod
+  attach:
+    asEnv: true           # добавить envFrom: secretRef
+    asVolume: false       # смонтировать как том
+    mountPath: /etc/app/secret
+
+  # Авто-рестарт Deployment при изменении секрета через VSO
+  rolloutRestart:
+    enabled: true
+    targets:
+      - kind: Deployment
+        name: "{{ include \"common-chart.fullname\" . }}"
+
+# Если хочешь вместо rolloutRestartTargets — stakater/reloader
+reloader:
+  enabled: false

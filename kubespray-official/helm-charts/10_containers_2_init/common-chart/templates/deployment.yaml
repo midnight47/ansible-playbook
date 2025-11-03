@@ -1,0 +1,279 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common-chart.fullname" . }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+
+  # --- RollingUpdate strategy + параметры выката ---
+  {{- if .Values.updateStrategy.enabled }}
+  strategy:
+    type: {{ .Values.updateStrategy.type | default "RollingUpdate" }}
+    {{- if ne (.Values.updateStrategy.type | default "RollingUpdate") "Recreate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.updateStrategy.rollingUpdate.maxSurge | default "25%" }}
+      maxUnavailable: {{ .Values.updateStrategy.rollingUpdate.maxUnavailable | default 0 }}
+    {{- end }}
+  minReadySeconds: {{ .Values.updateStrategy.minReadySeconds | default 0 }}
+  revisionHistoryLimit: {{ .Values.updateStrategy.revisionHistoryLimit | default 10 }}
+  progressDeadlineSeconds: {{ .Values.updateStrategy.progressDeadlineSeconds | default 600 }}
+  {{- end }}
+  # --- /RollingUpdate ---
+
+  selector:
+    matchLabels:
+      {{- include "common-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      # Аннотация reloader добавляется автоматически, если включён vault_secret и указан имя секрета
+      annotations:
+        {{- if and .Values.vault_secret.enabled .Values.vault_secret.name }}
+        secret.reloader.stakater.com/reload: "{{ .Values.vault_secret.name }}"
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "common-chart.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "common-chart.serviceAccountName" . }}
+
+      {{- if .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- else }}
+      securityContext: {}
+      {{- end }}
+
+      {{/* Настройки подключения секрета: безопасные дефолты (без хомпинга '-') */}}
+      {{ $attach := default (dict) .Values.vault_secret.attach }}
+      {{ $asEnv := default true  (get $attach "asEnv") }}
+      {{ $asVol := default false (get $attach "asVolume") }}
+      {{ $mountPath := default "/etc/app/secret" (get $attach "mountPath") }}
+
+
+
+      {{- /* ===== INIT CONTAINERS ===== */}}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- range $i, $ic := . }}
+        - name: {{ default (printf "%s-init-%d" $.Chart.Name $i) $ic.name }}
+          {{- with $ic.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.image }}
+          image: "{{ .repository }}{{- if .tag }}:{{ .tag }}{{- end }}"
+          {{- if .pullPolicy }}
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          {{- end }}
+          {{- with $ic.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.workingDir }}
+          workingDir: {{ . | quote }}
+          {{- end }}
+          {{- with $ic.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $ic.extraContainerSpec }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- /* ===== /INIT CONTAINERS ===== */}}
+
+
+
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+
+          {{- if and .Values.vault_secret.enabled $asEnv .Values.vault_secret.name }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.vault_secret.name }}
+          {{- end }}
+
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          {{- $needSecretVol := and .Values.vault_secret.enabled $asVol .Values.vault_secret.name }}
+          {{- if or $needSecretVol .Values.volumeMounts }}
+          volumeMounts:
+            {{- if $needSecretVol }}
+            - name: vault-secret
+              mountPath: {{ $mountPath }}
+              readOnly: true
+            {{- end }}
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+
+
+        {{- /* ===== САЙДКАРЫ: несколько контейнеров через range ===== */}}
+        {{- with .Values.sidecars }}
+        {{- range $i, $sc := . }}
+        - name: {{ default (printf "%s-sidecar-%d" $.Chart.Name $i) $sc.name }}
+          {{- with $sc.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with $sc.image }}
+          image: "{{ .repository }}{{- if .tag }}:{{ .tag }}{{- end }}"
+          {{- if .pullPolicy }}
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          {{- end }}
+
+          {{- with $sc.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with $sc.workingDir }}
+          workingDir: {{ . | quote }}
+          {{- end }}
+
+          {{- with $sc.ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with $sc.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with $sc.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $sc.terminationMessagePath }}
+          terminationMessagePath: {{ . | quote }}
+          {{- end }}
+          {{- with $sc.terminationMessagePolicy }}
+          terminationMessagePolicy: {{ . | quote }}
+          {{- end }}
+
+          {{- with $sc.extraContainerSpec }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- /* ===== /САЙДКАРЫ ===== */}}
+
+
+
+      {{- $needSecretVol := and .Values.vault_secret.enabled $asVol .Values.vault_secret.name }}
+      {{- if or $needSecretVol .Values.volumes }}
+      volumes:
+        {{- if $needSecretVol }}
+        - name: vault-secret
+          secret:
+            secretName: {{ .Values.vault_secret.name }}
+        {{- end }}
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if and .Values.topologySpread.enabled .Values.topologySpread.constraints }}
+      topologySpreadConstraints:
+      {{- range .Values.topologySpread.constraints }}
+        - maxSkew: {{ .maxSkew | default 1 }}
+          topologyKey: {{ .topologyKey | quote }}
+          whenUnsatisfiable: {{ .whenUnsatisfiable | default "DoNotSchedule" | quote }}
+          {{- if hasKey . "minDomains" }}
+          minDomains: {{ .minDomains }}
+          {{- end }}
+          labelSelector:
+            matchLabels:
+              {{- include "common-chart.selectorLabels" $ | nindent 14 }}
+      {{- end }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
