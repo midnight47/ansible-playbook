@@ -26,7 +26,7 @@ kubectl create token vault-auth -n kube-system --duration 876000h
 далее подключаемся к нашему vault который на виртуалках
 ssh 192.168.1.103
 напоминаю root token  пробелы нужно убрать - гитхаб не позволяет грузить
-h  vs.  UuG  0QJvR  RfwUHUTGx  DTjF  aAd
+\h \ vs. \ UuG \ 0QJvR \ RfwUHUTGx \ DTjF \ aAd\
 root@vault1:~# vault login
 
 создаём секрет который будем подкидывать:
