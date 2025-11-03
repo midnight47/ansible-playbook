@@ -276,8 +276,8 @@ WARNING! The following warnings were returned from Vault:
 
 Key                  Value
 ---                  -----
-token                hvs.CAESIJ4oY7ZiA7rRwJIBUmIafMpEa--RPzdZMjjFzJdfN0-3Gh4KHGh2cy4wOTduMTB5OG1SenIxNk9YdTJHZmhDOFM
-token_accessor       Bl3c2lPN6OzkkAuhfKPZwk5h
+token                h  vs.CA   ESIJ4oY7ZiA7rR    wJIBUmIafMp   Ea--RPzdZMjjF    JdfN 0-3Gh4  KHGh2c    y4wOTduMTB5   OG1SenIxN   9YdTJHZ  mhDOFM
+token_accessor       Bl  3c2  lPN6O  zkk  Auhf  PZwk5 h
 token_duration       768h
 token_renewable      true
 token_policies       ["default" "unseal-policy"]
@@ -293,8 +293,8 @@ Success! Tuned the auth method at: token/
 / $ vault token create -policy=unseal-policy -period=90000h -orphan
 Key                  Value
 ---                  -----
-token                hvs.CAESIJGcJoJ3xhrepURua7Rvte2u3TCGJ7t1q3XIMaZFPkjwGh4KHGh2cy5nRHZUWVZ0elowYmE3REZpbFVkS2JCVGw
-token_accessor       bkfa8CPHegDJbziHIOFWDdSs
+token                hv  s. CA  ESIJGc  JoJ3xhr  epURua7R  vte2u3TCGJ7  t1q3XIMaZ  FPkjwGh4KHGh  2cy5nRHZU  WVZ0elow  mE3REZp  bFVkS2JCVGw
+token_accessor       bkf  a8C  HegDJ  bziH  IOFW  DdSs
 token_duration       90000h
 token_renewable      true
 token_policies       ["default" "unseal-policy"]
@@ -307,7 +307,7 @@ root@vault1:~# cat /etc/vault.d/vault.hcl
 ```
   seal "transit" {
     address = "http://vault-unseal.test.local:80"
-    token   = "hvs.CAESIJGcJoJ3xhrepURua7Rvte2u3TCGJ7t1q3XIMaZFPkjwGh4KHGh2cy5nRHZUWVZ0elowYmE3REZpbFVkS2JCVGw"
+    token   = "hv  s.C  AESIJGcJo  J3xhrepU  Rua7Rvte  2u3TCGJ7t  1q3XIMaZF  PkjwGh4K  HGh2c  y5nRHZUWVZ0  elowYm  E3REZpb  VkS2J CVGw"
     key_name = "vault-unseal-key"
     mount_path = "transit/"
     disable_renewal = "false"
