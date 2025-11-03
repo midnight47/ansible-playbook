@@ -1,0 +1,103 @@
+{{- if and .Values.jobs .Values.jobs.enabled }}
+{{- $root := . }}
+{{- range $i, $j := .Values.jobs.items }}
+  {{- $name := required (printf "jobs.items[%d].name is required" $i) $j.name }}
+  {{- $img := required (printf "jobs.items[%d].image.repository is required" $i) (get $j.image "repository") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-%s" (include "common-chart.fullname" $root) $name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" $root | nindent 4 }}
+    job.kubernetes.io/name: {{ $name | quote }}
+  {{- $meta := get $j "metadata" }}
+  {{- if and $meta (kindIs "map" $meta) (get $meta "annotations") }}
+  annotations:
+    {{- toYaml (get $meta "annotations") | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $j.parallelism }}
+  parallelism: {{ . }}
+  {{- end }}
+  {{- with $j.completions }}
+  completions: {{ . }}
+  {{- end }}
+  {{- with $j.backoffLimit }}
+  backoffLimit: {{ . }}
+  {{- end }}
+  {{- with $j.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ . }}
+  {{- end }}
+  {{- with $j.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ . }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "common-chart.labels" $root | nindent 8 }}
+        job.kubernetes.io/name: {{ $name | quote }}
+      {{- with (get $j "podAnnotations") }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "common-chart.serviceAccountName" $root }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: {{ default "OnFailure" $j.restartPolicy }}
+      containers:
+        - name: {{ $name | trunc 63 | trimSuffix "-" }}
+          image: "{{ $img }}{{- if (get $j.image "tag") }}:{{ get $j.image "tag" }}{{- end }}"
+          {{- with (get $j.image "pullPolicy") }}
+          imagePullPolicy: {{ . }}
+          {{- end }}
+          {{- with $j.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $j.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $j.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $j.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with ($j.resources | default $root.Values.resources) }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $j.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $j.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with ($j.nodeSelector | default $root.Values.nodeSelector) }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with ($j.tolerations | default $root.Values.tolerations) }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with ($j.affinity | default $root.Values.affinity) }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- end }}
+{{- end }}

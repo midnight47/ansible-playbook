@@ -1,0 +1,457 @@
+# Default values for common-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: nginx
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: "app"
+
+#This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ 
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: 
+    cert-manager.io/cluster-issuer: ca-issuer
+  hosts:
+    - host: test-app.test.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: 
+   - secretName: test-app-tls
+     hosts:
+       - test-app.test.local
+
+resources: 
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+#This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      selectPolicy: Max          # допустимо: Max | Min | Disabled
+      policies:
+        - type: Percent          # не более +100% за 60 сек
+          value: 100
+          periodSeconds: 60
+        - type: Pods             # и не более +4 пода за 60 сек
+          value: 4
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 30
+      selectPolicy: Max          # для жёсткого ограничения выбирай Min
+      policies:
+        - type: Percent          # не более -10% за 60 сек
+          value: 10
+          periodSeconds: 60
+
+
+
+# # Additional volumes on the output Deployment definition.
+# volumes: []
+# # - name: foo
+# #   secret:
+# #     secretName: mysecret
+# #     optional: false
+
+# # Additional volumeMounts on the output Deployment definition.
+# volumeMounts: []
+# # - name: foo
+# #   mountPath: "/etc/foo"
+# #   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+vault_secret:
+  enabled: true
+  name: app-secret                 # имя k8s Secret, который получит VSO
+  secretFullPath: app/service/app1  # путь в Vault: <ns>/service/<app>
+  type: kv-v1                       # у меня сейчас kv-v1
+  role: ns-scoped-read              # универсальная роль в vault для всех ns
+  # audiences:
+  #   - "https://kubernetes.default.svc"
+
+
+
+topologySpread:
+  enabled: true
+  constraints:
+    - topologyKey: "kubernetes.io/hostname"  # по серверам
+      maxSkew: 2
+      whenUnsatisfiable: "ScheduleAnyway" # или "DoNotSchedule"
+
+
+updateStrategy:
+  enabled: true
+  type: RollingUpdate           # или Recreate
+  rollingUpdate:
+    maxSurge: 25%               # число или проценты; напр. 1 или "25%"
+    maxUnavailable: 0           # число или проценты; 0 = без даунтайма по репликам
+  minReadySeconds: 10           # сколько pod должен быть Ready перед следующим шагом
+  revisionHistoryLimit: 10      # сколько старых ReplicaSet хранить
+  progressDeadlineSeconds: 600  # дедлайн на прогресс выката
+
+pdb:
+  enabled: true
+  # Выбери ОДИН из параметров ниже:
+  minAvailable: 1
+  #maxUnavailable: 1
+  #Замечание: при replicaCount: 1 и minAvailable: 1 drain ноды будет блокироваться — это ожидаемое поведение. Если это не нужно, ставьте maxUnavailable: 1 или увеличьте число реплик
+
+keda:
+  enabled: true
+
+  # Кого скейлим (по умолчанию — имя релиза)
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ""  # пусто => {{ include "common-chart.fullname" . }}
+
+  # Периоды опроса/остывания
+  pollingInterval: 15
+  cooldownPeriod: 30
+
+  # Границы
+  minReplicaCount: 1
+  maxReplicaCount: 5
+
+  # Поведение при сбое источника метрик (опционально)
+  fallback:
+    # failureThreshold: 3
+    # replicas: 2
+
+  # Алгоритм объединения желаемых реплик при нескольких триггерах (если НЕТ формулы) — max|min|average
+  scalingStrategy:
+    multipleScalersCalculation: max
+
+  # Проброс behavior в создаваемый HPA (опционально)
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          selectPolicy: Max
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 60
+            - type: Pods
+              value: 4
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 20
+          selectPolicy: Max
+          policies:
+            - type: Percent
+              value: 10
+              periodSeconds: 60
+
+    # === AND-логика через формулу === чтобы вернуть логику ИЛИ нужно закомментировать блок scalingModifiers
+    # req — это метрика запросов, cpu — Prometheus-метрика CPU-процентов.
+    scalingModifiers:
+      formula: "req >= 100 && cpu >= 60 ? max(req/100, cpu/60) : 0"
+      target: "1"              # масштабируемся, когда формула >= 1
+      activationTarget: "0"    # при 0 не активируемся
+      metricType: "AverageValue"
+
+  # === Триггеры (два Prometheus-триггера: ingress-requests и CPU-проценты) ===
+  triggers:
+    # 1) Ingress requests за 2 минуты
+    - type: prometheus
+      name: req
+      metadata:
+        serverAddress: "http://vmsingle-vmks-victoria-metrics-k8s-stack.monitoring.svc.cluster.local:8428"
+        metricName: "ingress_requests"
+        query: |-
+          sum(
+            increase(
+              nginx_ingress_controller_requests{ingress="app"}[2m]
+            )
+          )
+        threshold: "100"
+        unsafeSsl: "true"
+
+    # 2) CPU-проценты как Prometheus-метрика (средняя загрузка по подам деплоймента "app" в ns "app")
+    # Требует kube-state-metrics. Формула: 100 * usage_cores / requested_cores.
+    - type: prometheus
+      name: cpu
+      metadata:
+        serverAddress: "http://vmsingle-vmks-victoria-metrics-k8s-stack.monitoring.svc.cluster.local:8428"
+        metricName: "cpu_utilization_pct"
+        query: |-
+          100 *
+          sum by (namespace) (
+            rate(container_cpu_usage_seconds_total{
+              namespace="app",
+              pod=~"app-.*",
+              container!="POD", image!=""
+            }[1m])
+          )
+          /
+          sum by (namespace) (
+            kube_pod_container_resource_requests{
+              namespace="app",
+              pod=~"app-.*",
+              resource="cpu"
+            }
+          )
+        threshold: "60"
+        unsafeSsl: "true"
+
+sidecars:
+  - name: curl-pinger
+    image:
+      repository: curlimages/curl
+      tag: "latest"          # или зафиксируй конкретную версию
+      pullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        while true; do
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:80/ || true)
+          echo "$(date -u +%FT%TZ) GET / -> ${code}"
+          sleep 5
+        done
+    resources:
+      requests:
+        cpu: 5m
+        memory: 16Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+  - name: wget-pinger
+    image:
+      repository: busybox
+      tag: "1.36"
+    command:
+      - sh
+      - -c
+      - |
+        while true; do
+          wget -q -S -O /dev/null http://127.0.0.1:80/ 2>&1 | awk 'NR==1{print strftime("%Y-%m-%dT%H:%M:%SZ"), $0}'
+          sleep 5
+        done
+  - name: php-fpm
+    image:
+      repository: php
+      tag: "8.2-fpm-alpine"
+      pullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        exec php-fpm -F
+    ports:
+      - name: fpm
+        containerPort: 9000
+        protocol: TCP
+    livenessProbe:
+      tcpSocket: 
+        port: fpm
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    readinessProbe:
+      tcpSocket: 
+        port: fpm
+      initialDelaySeconds: 2
+      periodSeconds: 5
+    resources:
+      requests: 
+        cpu: 50m 
+        memory: 64Mi
+      limits: 
+        cpu: 200m
+        memory: 256Mi
+    volumeMounts:          # <--- ДОБАВЛЕНО
+      - name: php-index
+        mountPath: /var/www/html/index.php
+        subPath: index.php
+
+
+######### инит контейнеры #########
+# Общий том (если нужно готовить файлы/права в init)
+volumes:
+  - name: app-code
+    emptyDir: {}
+  # NGINX конфиг:
+  - name: nginx-conf
+    configMap:
+      name: nginx-conf
+      items:
+        - key: default.conf
+          path: default.conf
+  # PHP код (index.php):
+  - name: php-index
+    configMap:
+      name: php-index
+      items:
+        - key: index.php
+          path: index.php
+
+# Смонтировать общий том в основной контейнер (опционально)
+volumeMounts:
+  - name: app-code
+    mountPath: /var/www/html
+  - name: nginx-conf
+    mountPath: /etc/nginx/conf.d/default.conf
+    subPath: default.conf
+  - name: php-index
+    mountPath: /var/www/html/index.php
+    subPath: index.php
+
+
+# Набор init-контейнеров
+initContainers:
+  # 1) Подготовка файлов
+  - name: init-files
+    image:
+      repository: busybox
+      tag: "1.36"
+      pullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /var/www/html
+        echo "init generated $(date -u +%FT%TZ)" > /var/www/html/README.txt
+    volumeMounts:
+      - name: app-code
+        mountPath: /var/www/html
+    resources:
+      requests:
+        cpu: 5m
+        memory: 16Mi
+      limits: 
+        cpu: 50m
+        memory: 64Mi
+
+  # 2) Подготовка прав
+  - name: init-permissions
+    image:
+      repository: busybox
+      tag: "1.36"
+      pullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - |
+        chown -R 101:101 /var/www/html || true
+        ls -lah /var/www/
+        echo ""
+        cat /var/www/html/README.txt
+    volumeMounts:
+      - name: app-code
+        mountPath: /var/www/html
+    resources:
+      requests:
+        cpu: 5m
+        memory: 16Mi
+      limits: 
+        cpu: 50m
+        memory: 64Mi
+
+
+configmaps:
+  enabled: true
+  items:
+    - name: app-config-test       # имя ConfigMap
+      file: configmap-files/test.yaml   # путь к файлу внутри чарта
+      key: app.conf               # (опционально) ключ в .data; если не задан — basename(file)
+      labels:                     # (опционально)
+        tier: backend
+      annotations:                # (опционально)
+        reloader.stakater.com/match: "true"
+
+    - name: logging
+      file: configmap-files/test2.yaml
+
+    # бинарный пример -> попадёт в binaryData (base64)
+    - name: ca-bundle
+      file: configmap-files/test3.crt
+      binary: true                # (опционально) по умолчанию false
+
+    # для nginx и php-fpm чтобы запрос прилетал на nginx и проксировался на php-fpm
+    - name: nginx-conf
+      file: configmap-files/nginx/default.conf
+      key: default.conf
+    - name: php-index
+      file: configmap-files/php/index.php
+      key: index.php
+

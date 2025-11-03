@@ -3,7 +3,7 @@ controller:
   resources:
     requests:
       cpu: "50m"
-      memory: "50Mi"
+      memory: "80Mi"
     limits:
       cpu: 100m
       memory: 100Mi
@@ -18,5 +18,14 @@ speaker:
     limits:
       cpu: 100m
       memory: 100Mi
+  frr:
+    enabled: true
+    resources:
+      requests:
+        cpu: "10m"
+        memory: "50Mi"
+      limits:
+        cpu: 50m
+        memory: 100Mi
 crds:
   enabled: true

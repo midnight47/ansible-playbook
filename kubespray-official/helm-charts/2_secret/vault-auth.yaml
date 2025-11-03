@@ -1,0 +1,14 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vault-auth-test
+  namespace: app
+spec:
+  vaultConnectionRef: kube-system/vault-connection
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: test-role
+    serviceAccount: app
+    audiences:
+      - vault         # <-- та же строка должна быть в роли Vault

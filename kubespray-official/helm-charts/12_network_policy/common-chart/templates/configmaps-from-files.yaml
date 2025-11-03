@@ -1,0 +1,47 @@
+{{- /*
+Шаблон создаёт по одному ConfigMap на каждый элемент из .Values.configmaps.items.
+везде используем корневой контекст `$` для Files/Chart/Release.
+*/ -}}
+{{- if and .Values.configmaps .Values.configmaps.enabled }}
+{{- $items := default (list) .Values.configmaps.items }}
+
+{{- range $i, $cm := $items }}
+  {{- $rawName := required (printf "configmaps.items[%d].name is required" $i) $cm.name }}
+  {{- $file := required (printf "configmaps.items[%d].file is required" $i) $cm.file }}
+
+  {{- if not ($.Files.Get $file) }}
+    {{- fail (printf "File '%s' not found in chart for configmaps.items[%d]" $file $i) }}
+  {{- end }}
+
+  {{- $key := default (base $file) $cm.key }}
+  {{- $isBin := default false $cm.binary }}
+  {{- /* Нормализация имени под DNS-1123 */ -}}
+  {{- $name := $rawName | replace "_" "-" | replace "." "-" | lower | trunc 63 | trimSuffix "-" }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/part-of: {{ $.Chart.Name | quote }}
+    helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- with $cm.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $cm.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if not $isBin }}
+data:
+  {{ $key }}: |-
+{{ $.Files.Get $file | indent 4 }}
+{{- else }}
+binaryData:
+  {{ $key }}: {{ $.Files.GetBytes $file | toString | b64enc }}
+{{- end }}
+---
+{{- end }}
+{{- end }}

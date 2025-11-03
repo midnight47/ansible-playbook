@@ -58,7 +58,7 @@ vmsingle:
         memory: "1500Mi"
       requests:
         cpu: "1"
-        memory: "1000Mi"
+        memory: "1200Mi"
 
     extraArgs:
       maxLabelsPerTimeseries: "50"
@@ -137,7 +137,7 @@ grafana:
       memory: "500Mi"
     requests:
       cpu: "100m"
-      memory: "200Mi"
+      memory: "250Mi"
 
   persistence:
     enabled: true
@@ -207,7 +207,7 @@ vmalert:
         memory: "500Mi"
       requests:
         cpu: "100m"
-        memory: "100Mi"
+        memory: "60Mi"
 
 prometheus-node-exporter:
   enabled: true
