@@ -1,0 +1,8 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: monitoring-logging-critical
+value: 1000               # любое int32; больше — важнее
+globalDefault: false      # не делайте true без нужды
+preemptionPolicy: PreemptLowerPriority  # или оставьте по умолчанию
+description: "Critical workloads"

@@ -70,4 +70,5 @@ csi:
     limits:
       cpu: 50m
       memory: 128Mi
+  priorityClassName: "monitoring-logging-critical"
 
