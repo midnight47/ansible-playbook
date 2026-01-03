@@ -97,6 +97,7 @@ controller:
       operator: "Exists"
       effect: "NoSchedule"
 
+  priorityClassName: "monitoring-logging-critical"
 
 defaultBackend:
   enabled: false

@@ -1,0 +1,54 @@
+# # values-vpa.yaml
+# recommender:
+#   enabled: true
+
+# updater:
+#   enabled: true
+#   extraArgs:
+#     feature-gates: InPlaceOrRecreate=true  # включает стратегию попытки in-place
+
+# admissionController:
+#   enabled: true
+#   extraArgs:
+#     feature-gates: InPlaceOrRecreate=true
+#   # Чарт Fairwinds сам создаёт MutatingWebhookConfiguration и управляет сертификатами.
+
+  
+
+
+  ###########################
+
+  # values-vpa.yaml
+
+recommender:
+  enabled: true
+  extraArgs:
+    v: "4"
+    pod-recommendation-min-cpu-millicores: "15"
+    pod-recommendation-min-memory-mb: "100"
+
+    # 1) +20% к рассчитанной рекомендации (request'у)
+    recommendation-margin-fraction: "0.2"   # default 0.15
+
+    # 2) чаще цикл (опционально)
+    recommender-interval: "30s"             # default 1m (metrics-server часто даёт данные ~раз в минуту)
+
+    # 3) быстрее “забывать” старую нагрузку → быстрее реагировать (для прод лучше осторожно)
+    cpu-histogram-decay-half-life: "6h"     # default 24h
+    memory-histogram-decay-half-life: "6h"  # default 24h
+
+updater:
+  enabled: true
+  extraArgs:
+    feature-gates: "InPlaceOrRecreate=true"
+
+    # применять изменения только если “дельта” >= 20%
+    pod-update-threshold: "0.2"             # default 0.1
+
+    # опционально: чаще проверять (если флаг поддерживается в твоей версии updater)
+    updater-interval: "30s"
+
+admissionController:
+  enabled: true
+  extraArgs:
+    feature-gates: "InPlaceOrRecreate=true"

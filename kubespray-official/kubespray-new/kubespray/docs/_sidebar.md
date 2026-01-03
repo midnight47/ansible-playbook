@@ -6,7 +6,6 @@
   * [Downloads](/docs/advanced/downloads.md)
   * [Gcp-lb](/docs/advanced/gcp-lb.md)
   * [Kubernetes-reliability](/docs/advanced/kubernetes-reliability.md)
-  * [Mitogen](/docs/advanced/mitogen.md)
   * [Netcheck](/docs/advanced/netcheck.md)
   * [Ntp](/docs/advanced/ntp.md)
   * [Proxy](/docs/advanced/proxy.md)
@@ -32,7 +31,6 @@
   * [Kube-router](/docs/CNI/kube-router.md)
   * [Macvlan](/docs/CNI/macvlan.md)
   * [Multus](/docs/CNI/multus.md)
-  * [Weave](/docs/CNI/weave.md)
 * CRI
   * [Containerd](/docs/CRI/containerd.md)
   * [Cri-o](/docs/CRI/cri-o.md)

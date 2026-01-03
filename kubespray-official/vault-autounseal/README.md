@@ -9,7 +9,7 @@ root@client:~# helm repo add hashicorp https://helm.releases.hashicorp.com
 ```
 устанавливаем vault
 ```
-root@client:~/vault-autounseal# helm upgrade --install -n vault vault hashicorp/vault -f values.yaml
+root@client:~/vault-autounseal# helm upgrade --install -n vault vault hashicorp/vault --version 0.30.0 -f values.yaml 
 ```
 
 создаём ключи и записываем их в файл:
