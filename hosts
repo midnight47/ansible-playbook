@@ -78,7 +78,7 @@
 ; 192.168.1.152 # patrony1
 ; 192.168.1.153 # patrony2
 ; 192.168.1.154 # patrony3
-
+; 192.168.1.155 # openmediavault
 
 [NOproxy]
 # localhost
