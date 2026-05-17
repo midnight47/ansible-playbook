@@ -1,0 +1,34 @@
+{{- if and .Values.httpRoute.enabled .Values.httpRoute.tls.enabled .Values.httpRoute.tls.referenceGrant.enabled -}}
+{{- $root := . -}}
+
+{{- if not .Values.httpRoute.tls.secretName }}
+{{- fail "httpRoute.tls.enabled=true, but httpRoute.tls.secretName is empty" }}
+{{- end }}
+
+{{- if not .Values.httpRoute.tls.referenceGrant.from }}
+{{- fail "httpRoute.tls.referenceGrant.enabled=true, but httpRoute.tls.referenceGrant.from is empty" }}
+{{- end }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: {{ include "common-chart.fullname" $root }}-gateway-tls
+  namespace: {{ default $root.Release.Namespace $root.Values.httpRoute.tls.namespace }}
+  labels:
+    {{- include "common-chart.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: gateway-tls-referencegrant
+
+spec:
+  from:
+    {{- range $fromIndex, $from := .Values.httpRoute.tls.referenceGrant.from }}
+    - group: {{ default "gateway.networking.k8s.io" $from.group | quote }}
+      kind: {{ default "Gateway" $from.kind | quote }}
+      namespace: {{ required (printf "httpRoute.tls.referenceGrant.from[%d].namespace is required" $fromIndex) $from.namespace | quote }}
+    {{- end }}
+
+  to:
+    - group: ""
+      kind: Secret
+      name: {{ .Values.httpRoute.tls.secretName | quote }}
+{{- end }}

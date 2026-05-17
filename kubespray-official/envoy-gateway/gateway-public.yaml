@@ -1,0 +1,94 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: public-proxy
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 2
+
+        container:
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              memory: 1024Mi
+
+        pod:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "19001"
+
+          labels:
+            app.kubernetes.io/part-of: gateway-api
+            gateway-type: public
+
+          # Если хочешь посадить Envoy proxy на infra-ноды:
+          nodeSelector: {}
+          # nodeSelector:
+          #   node-role: infra
+
+          tolerations: []
+          # tolerations:
+          #   - key: dedicated
+          #     operator: Equal
+          #     value: infra
+          #     effect: NoSchedule
+
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  gateway.envoyproxy.io/owning-gateway-name: public-gateway
+
+      envoyService:
+        type: LoadBalancer
+
+        # Для старта на bare metal + MetalLB лучше Cluster.
+        # Local включай позже, если нужно сохранять source IP.
+        externalTrafficPolicy: Cluster
+
+        annotations:
+          # ЗАМЕНИ на свой MetalLB pool.
+          # Посмотреть:
+          # kubectl get ipaddresspool -n metallb-system
+          metallb.io/address-pool: first-pool
+
+          # Если хочешь конкретный IP, раскомментируй:
+          # metallb.io/loadBalancerIPs: 192.168.1.100
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg-public
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: public-proxy
+    namespace: envoy-gateway-system
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: public-gateway
+  namespace: envoy-gateway-system
+spec:
+  gatewayClassName: eg-public
+
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+
+

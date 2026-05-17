@@ -1,0 +1,11 @@
+crds:
+  gatewayAPI:
+    enabled: true
+
+    # Для обычного HTTP/HTTPS достаточно standard.
+    # experimental нужен, если потом понадобятся TCPRoute,
+    # BackendTLSPolicy и другие alpha/experimental ресурсы.
+    channel: standard
+
+  envoyGateway:
+    enabled: true

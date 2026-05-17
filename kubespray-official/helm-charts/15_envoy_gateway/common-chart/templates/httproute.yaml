@@ -1,0 +1,130 @@
+{{- if .Values.httpRoute.enabled -}}
+{{- $root := . -}}
+
+{{- if not .Values.httpRoute.hosts }}
+{{- fail "httpRoute.enabled=true, but httpRoute.hosts is empty" }}
+{{- end }}
+
+{{- if not .Values.httpRoute.parentRefs }}
+{{- fail "httpRoute.enabled=true, but httpRoute.parentRefs is empty" }}
+{{- end }}
+
+{{- range $hostIndex, $host := .Values.httpRoute.hosts }}
+{{- $hostname := required (printf "httpRoute.hosts[%d].host is required" $hostIndex) $host.host -}}
+
+{{- if not $host.paths }}
+{{- fail (printf "httpRoute.hosts[%d].paths is empty" $hostIndex) }}
+{{- end }}
+
+{{- $hostPart := $hostname | lower | replace "*." "wildcard-" | replace "*" "wildcard" | replace "." "-" | replace ":" "-" | trunc 40 | trimSuffix "-" -}}
+{{- $routeName := default (printf "%s-%s" (include "common-chart.fullname" $root) $hostPart) $host.name -}}
+{{- $parentRefs := default $root.Values.httpRoute.parentRefs $host.parentRefs -}}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $routeName | trunc 63 | trimSuffix "-" }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: httproute
+  {{- if or $root.Values.httpRoute.annotations $host.annotations }}
+  annotations:
+    {{- with $root.Values.httpRoute.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with $host.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+
+spec:
+  parentRefs:
+    {{- range $parentRefIndex, $parentRef := $parentRefs }}
+    - name: {{ required (printf "httpRoute.parentRefs[%d].name is required" $parentRefIndex) $parentRef.name | quote }}
+      {{- with $parentRef.namespace }}
+      namespace: {{ . | quote }}
+      {{- end }}
+      {{- with $parentRef.sectionName }}
+      sectionName: {{ . | quote }}
+      {{- end }}
+      {{- with $parentRef.group }}
+      group: {{ . | quote }}
+      {{- end }}
+      {{- with $parentRef.kind }}
+      kind: {{ . | quote }}
+      {{- end }}
+    {{- end }}
+
+  hostnames:
+    - {{ $hostname | quote }}
+
+  rules:
+    {{- range $pathIndex, $path := $host.paths }}
+    {{- $pathType := default "PathPrefix" $path.pathType -}}
+    {{- if eq $pathType "ImplementationSpecific" }}
+    {{- $pathType = "PathPrefix" }}
+    {{- end }}
+    {{- if eq $pathType "Prefix" }}
+    {{- $pathType = "PathPrefix" }}
+    {{- end }}
+
+    - matches:
+        - path:
+            type: {{ $pathType | quote }}
+            value: {{ default "/" $path.path | quote }}
+          {{- with $path.headers }}
+          headers:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $path.queryParams }}
+          queryParams:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $path.method }}
+          method: {{ . | quote }}
+          {{- end }}
+
+      {{- if or $root.Values.httpRoute.filters $path.filters }}
+      filters:
+        {{- with $root.Values.httpRoute.filters }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with $path.filters }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+
+      backendRefs:
+        {{- if $path.backendRefs }}
+        {{- range $backendIndex, $backend := $path.backendRefs }}
+        - name: {{ required (printf "httpRoute.hosts[%d].paths[%d].backendRefs[%d].name is required" $hostIndex $pathIndex $backendIndex) $backend.name | quote }}
+          port: {{ required (printf "httpRoute.hosts[%d].paths[%d].backendRefs[%d].port is required" $hostIndex $pathIndex $backendIndex) $backend.port }}
+          {{- with $backend.weight }}
+          weight: {{ . }}
+          {{- end }}
+          {{- with $backend.namespace }}
+          namespace: {{ . | quote }}
+          {{- end }}
+          {{- with $backend.group }}
+          group: {{ . | quote }}
+          {{- end }}
+          {{- with $backend.kind }}
+          kind: {{ . | quote }}
+          {{- end }}
+        {{- end }}
+        {{- else }}
+        - name: {{ default (include "common-chart.fullname" $root) $root.Values.httpRoute.backendRefs.stable.name | quote }}
+          port: {{ required "httpRoute.backendRefs.stable.port is required" $root.Values.httpRoute.backendRefs.stable.port }}
+          weight: {{ default 100 $root.Values.httpRoute.backendRefs.stable.weight }}
+
+        {{- if $root.Values.httpRoute.backendRefs.canary.enabled }}
+        - name: {{ default (printf "%s%s" (include "common-chart.fullname" $root) $root.Values.httpRoute.backendRefs.canary.nameSuffix) $root.Values.httpRoute.backendRefs.canary.name | quote }}
+          port: {{ required "httpRoute.backendRefs.canary.port is required when httpRoute.backendRefs.canary.enabled=true" $root.Values.httpRoute.backendRefs.canary.port }}
+          weight: {{ default 0 $root.Values.httpRoute.backendRefs.canary.weight }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

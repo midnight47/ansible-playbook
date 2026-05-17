@@ -1,0 +1,120 @@
+# Если нужно тянуть images из приватного registry,
+# можно указать global.imageRegistry / global.imagePullSecrets.
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+commonLabels:
+  app.kubernetes.io/part-of: gateway-api
+
+podDisruptionBudget:
+  minAvailable: 1
+
+deployment:
+  replicas: 2
+
+  annotations: {}
+
+  envoyGateway:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1024Mi
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      privileged: false
+      runAsNonRoot: true
+      runAsGroup: 65532
+      runAsUser: 65532
+      seccompProfile:
+        type: RuntimeDefault
+
+  pod:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "19001"
+
+    labels: {}
+
+    # Если хочешь посадить controller на конкретные ноды,
+    # раскомментируй и поменяй labels.
+    nodeSelector: {}
+    # nodeSelector:
+    #   node-role: infra
+
+    tolerations: []
+    # tolerations:
+    #   - key: dedicated
+    #     operator: Equal
+    #     value: infra
+    #     effect: NoSchedule
+
+    affinity: {}
+
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: gateway-helm
+
+# Это Service самого Envoy Gateway controller.
+# НЕ внешний LoadBalancer для пользователей.
+# Оставляем ClusterIP.
+service:
+  type: ClusterIP
+  annotations: {}
+
+hpa:
+  enabled: false
+
+config:
+  envoyGateway:
+    gateway:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+
+    provider:
+      type: Kubernetes
+
+    logging:
+      level:
+        default: info
+
+    extensionApis: {}
+
+kubernetesClusterDomain: cluster.local
+
+certgen:
+  job:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+    ttlSecondsAfterFinished: 30
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsGroup: 65532
+      runAsUser: 65532
+      seccompProfile:
+        type: RuntimeDefault
+
+topologyInjector:
+  enabled: true
+

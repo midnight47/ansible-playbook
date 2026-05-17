@@ -1,0 +1,47 @@
+{{- if and .Values.gateway.enabled (eq .Values.gateway.mode "patch") .Values.gateway.patcher.rbac.create }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "common-chart.fullname" . }}-gateway-patcher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "common-chart.fullname" . }}-gateway-patcher
+  namespace: {{ required "gateway.namespace is required" .Values.gateway.namespace }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gateways
+    resourceNames:
+      - {{ required "gateway.name is required" .Values.gateway.name | quote }}
+    verbs:
+      - get
+      - patch
+      - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "common-chart.fullname" . }}-gateway-patcher
+  namespace: {{ required "gateway.namespace is required" .Values.gateway.namespace }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "common-chart.fullname" . }}-gateway-patcher
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "common-chart.fullname" . }}-gateway-patcher
+{{- end }}

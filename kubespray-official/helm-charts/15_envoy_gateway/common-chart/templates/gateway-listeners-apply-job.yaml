@@ -1,0 +1,110 @@
+{{- if and .Values.gateway.enabled (eq .Values.gateway.mode "patch") }}
+{{- if not .Values.gateway.listeners }}
+{{- fail "gateway.enabled=true and gateway.mode=patch, but gateway.listeners is empty" }}
+{{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common-chart.fullname" . }}-gateway-listeners-apply
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway-listeners-patcher
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        {{- include "common-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway-listeners-patcher
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "common-chart.fullname" . }}-gateway-patcher
+      containers:
+        - name: kubectl
+          image: {{ default "bitnami/kubectl:latest" .Values.gateway.patcher.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              GATEWAY_NAME="{{ required "gateway.name is required" .Values.gateway.name }}"
+              GATEWAY_NAMESPACE="{{ required "gateway.namespace is required" .Values.gateway.namespace }}"
+
+              echo "Patching Gateway ${GATEWAY_NAMESPACE}/${GATEWAY_NAME} listeners..."
+
+              kubectl get gateway "${GATEWAY_NAME}" -n "${GATEWAY_NAMESPACE}" >/dev/null
+
+              {{- range $i, $listener := .Values.gateway.listeners }}
+              echo "Processing listener: {{ required (printf "gateway.listeners[%d].name is required" $i) $listener.name }}"
+
+              cat > /tmp/listener-{{ $i }}.json <<'EOF'
+              {{- toJson $listener | nindent 14 }}
+              EOF
+
+              LISTENER_NAME="{{ $listener.name }}"
+
+              names="$(kubectl get gateway "${GATEWAY_NAME}" \
+                -n "${GATEWAY_NAMESPACE}" \
+                -o jsonpath='{range .spec.listeners[*]}{.name}{"\n"}{end}')"
+
+              index=0
+              found=""
+
+              for current in ${names}; do
+                if [ "${current}" = "${LISTENER_NAME}" ]; then
+                  found="${index}"
+                  break
+                fi
+                index=$((index + 1))
+              done
+
+              if [ -n "${found}" ]; then
+                echo "Listener ${LISTENER_NAME} already exists at index ${found}. Replacing..."
+
+                cat > /tmp/patch-{{ $i }}.json <<EOF
+              [
+                {
+                  "op": "replace",
+                  "path": "/spec/listeners/${found}",
+                  "value": $(cat /tmp/listener-{{ $i }}.json)
+                }
+              ]
+              EOF
+              else
+                echo "Listener ${LISTENER_NAME} does not exist. Adding..."
+
+                cat > /tmp/patch-{{ $i }}.json <<EOF
+              [
+                {
+                  "op": "add",
+                  "path": "/spec/listeners/-",
+                  "value": $(cat /tmp/listener-{{ $i }}.json)
+                }
+              ]
+              EOF
+              fi
+
+              echo "Patch for listener ${LISTENER_NAME}:"
+              cat /tmp/patch-{{ $i }}.json
+
+              kubectl patch gateway "${GATEWAY_NAME}" \
+                -n "${GATEWAY_NAMESPACE}" \
+                --type=json \
+                --patch-file /tmp/patch-{{ $i }}.json
+
+              {{- end }}
+
+              echo "Gateway listeners after patch:"
+              kubectl get gateway "${GATEWAY_NAME}" \
+                -n "${GATEWAY_NAMESPACE}" \
+                -o jsonpath='{range .spec.listeners[*]}{.name}{"\t"}{.hostname}{"\t"}{.protocol}{"\t"}{.port}{"\n"}{end}'
+
+              echo "Gateway listeners applied."
+{{- end }}

@@ -1,0 +1,73 @@
+{{- if and .Values.gateway.enabled (eq .Values.gateway.mode "patch") }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common-chart.fullname" . }}-gateway-listeners-delete
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway-listeners-cleaner
+  annotations:
+    helm.sh/hook: pre-delete
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        {{- include "common-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway-listeners-cleaner
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "common-chart.fullname" . }}-gateway-patcher
+      containers:
+        - name: kubectl
+          image: {{ default "bitnami/kubectl:latest" .Values.gateway.patcher.image | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              echo "Deleting Gateway listeners from {{ .Values.gateway.namespace }}/{{ .Values.gateway.name }}..."
+
+              kubectl get gateway {{ .Values.gateway.name }} \
+                -n {{ .Values.gateway.namespace }} >/dev/null
+
+              for listener in {{- range .Values.gateway.listeners }} {{ .name | quote }}{{- end }}; do
+                echo "Checking listener: ${listener}"
+
+                while true; do
+                  names="$(kubectl get gateway {{ .Values.gateway.name }} \
+                    -n {{ .Values.gateway.namespace }} \
+                    -o jsonpath='{range .spec.listeners[*]}{.name}{"\n"}{end}')"
+
+                  index=0
+                  found=""
+
+                  for current in ${names}; do
+                    if [ "${current}" = "${listener}" ]; then
+                      found="${index}"
+                      break
+                    fi
+                    index=$((index + 1))
+                  done
+
+                  if [ -z "${found}" ]; then
+                    echo "Listener ${listener} not found, skip."
+                    break
+                  fi
+
+                  echo "Removing listener ${listener} at index ${found}"
+
+                  kubectl patch gateway {{ .Values.gateway.name }} \
+                    -n {{ .Values.gateway.namespace }} \
+                    --type=json \
+                    -p="[{\"op\":\"remove\",\"path\":\"/spec/listeners/${found}\"}]"
+                done
+              done
+
+              echo "Gateway listeners deleted."
+{{- end }}

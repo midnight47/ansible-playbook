@@ -1,0 +1,37 @@
+{{- if and .Values.ingress.enabled .Values.canary.enabled .Values.canary.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "common-chart.fullname" . }}-canary
+  labels:
+    {{- include "common-chart.labels" . | nindent 4 }}
+    rollout: canary
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.canary.ingress.className | default .Values.ingress.className }}
+    {{- range $k, $v := .Values.canary.ingress.annotations }}
+    {{ $k }}: {{ $v | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.canary.ingress.className | default .Values.ingress.className }}
+  rules:
+    {{- $hosts := (default .Values.ingress.hosts .Values.canary.ingress.hostsOverride) }}
+    {{- range $h := $hosts }}
+    - host: {{ $h.host | quote }}
+      http:
+        paths:
+          {{- range $p := $h.paths }}
+          - path: {{ $p.path | default "/" | quote }}
+            pathType: {{ $p.pathType | default "ImplementationSpecific" }}
+            backend:
+              service:
+                name: {{ include "common-chart.fullname" $ }}{{ $.Values.canary.service.nameSuffix }}
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+  {{- $tls := (default .Values.ingress.tls .Values.canary.ingress.tlsOverride) }}
+  {{- if $tls }}
+  tls:
+    {{- toYaml $tls | nindent 4 }}
+  {{- end }}
+{{- end }}
