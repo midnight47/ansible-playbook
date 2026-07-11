@@ -15,7 +15,7 @@ The Kubespray Project is released on an as-needed basis. The process is as follo
 1. The release issue is closed
 1. An announcement email is sent to `dev@kubernetes.io` with the subject `[ANNOUNCE] Kubespray $VERSION is released`
 1. The topic of the #kubespray channel is updated with `vX.Y.Z is released! | ...`
-1. Create/Update Issue for upgradeing kubernetes and [k8s-conformance](https://github.com/cncf/k8s-conformance)
+1. Create/Update Issue for upgrading kubernetes and [k8s-conformance](https://github.com/cncf/k8s-conformance)
 
 ## Major/minor releases and milestones
 
@@ -58,7 +58,7 @@ You can create a release note with:
 export GITHUB_TOKEN=<your-github-token>
 export ORG=kubernetes-sigs
 export REPO=kubespray
-release-notes --start-sha <The start commit-id> --end-sha <The end commit-id> --dependencies=false --output=/tmp/kubespray-release-note --required-author=""
+release-notes generate --org "${ORG}" --repo "${REPO}" --repo-path "${PWD}" --start-sha <The start commit-id> --end-sha <The end commit-id> --dependencies=false --output=/tmp/kubespray-release-note
 ```
 
 If the release note file(/tmp/kubespray-release-note) contains "### Uncategorized" pull requests, those pull requests don't have a valid kind label(`kind/feature`, etc.).

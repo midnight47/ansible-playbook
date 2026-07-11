@@ -6,29 +6,32 @@
 # -> nothing depending on facts or similar cluster state
 # Checks depending on current state (of the nodes or the cluster)
 # should be in roles/kubernetes/preinstall/tasks/0040-verify-settings.yml
-- name: Stop if removed tags are used
+- name: Fail if removed variables are used
+  vars:
+    # Always remove items from this list after the release in comments
+    removed_vars:
+      - kubelet_static_pod_path # 2.31.0
+    removed_vars_found: "{{ query('varnames', '^' + (removed_vars | join('|')) + '$') }}"
   assert:
-    msg: The tag 'master' is removed. Use 'control-plane' instead
-    that:
-      - ('master' not in ansible_run_tags)
-      - ('master' not in ansible_skip_tags)
-        # TODO: Remove checks after next release
+    that: removed_vars_found | length == 0
+    fail_msg: "Removed variables present: {{ removed_vars_found | join(', ') }}"
+  run_once: true
 
 - name: Stop if kube_control_plane group is empty
   assert:
-    that: groups.get( 'kube_control_plane' )
+    that: groups.get( 'kube_control_plane' ) != []
   run_once: true
   when: not ignore_assert_errors
 
 - name: Stop if etcd group is empty in external etcd mode
   assert:
-    that: groups.get('etcd') or etcd_deployment_type == 'kubeadm'
+    that: groups.get('etcd') != [] or etcd_deployment_type == 'kubeadm'
     fail_msg: "Group 'etcd' cannot be empty in external etcd mode"
   run_once: true
   when:
     - not ignore_assert_errors
 
-- name: Warn if `kube_network_plugin` is `none
+- name: Warn if `kube_network_plugin` is `none`
   debug:
     msg: |
       "WARNING! => `kube_network_plugin` is set to `none`. The network configuration will be skipped.
@@ -46,7 +49,6 @@
   assert:
     that:
       - download_run_once | type_debug == 'bool'
-      - deploy_netchecker | type_debug == 'bool'
       - download_always_pull | type_debug == 'bool'
       - helm_enabled | type_debug == 'bool'
       - openstack_lbaas_enabled | type_debug == 'bool'
@@ -75,18 +77,10 @@
     - kube_network_plugin not in ['calico', 'none']
     - ipv4_stack | bool
 
-- name: Stop if RBAC is not enabled when dashboard is enabled
-  assert:
-    that: rbac_enabled
-  when:
-    - dashboard_enabled
-    - not ignore_assert_errors
-
 - name: Check cloud_provider value
   assert:
-    that: cloud_provider == 'external'
+    that: cloud_provider in ["", 'external']
   when:
-    - cloud_provider
     - not ignore_assert_errors
 
 - name: Check external_cloud_provider value
@@ -99,7 +93,7 @@
 - name: "Check that kube_service_addresses is a network range"
   assert:
     that:
-      - kube_service_addresses | ansible.utils.ipaddr('net')
+      - kube_service_addresses | ansible.utils.ipaddr('net') is not false
     msg: "kube_service_addresses = '{{ kube_service_addresses }}' is not a valid network range"
   run_once: true
   when: ipv4_stack | bool
@@ -107,7 +101,7 @@
 - name: "Check that kube_pods_subnet is a network range"
   assert:
     that:
-      - kube_pods_subnet | ansible.utils.ipaddr('net')
+      - kube_pods_subnet | ansible.utils.ipaddr('net') is not false
     msg: "kube_pods_subnet = '{{ kube_pods_subnet }}' is not a valid network range"
   run_once: true
   when: ipv4_stack | bool
@@ -218,3 +212,13 @@
   when:
     - kube_external_ca_mode
     - not ignore_assert_errors
+
+- name: Download_file | Check if requested Kubernetes are supported
+  assert:
+    that:
+      - kube_version in kubeadm_checksums[image_arch]
+      - kube_version in kubelet_checksums[image_arch]
+      - kube_version in kubectl_checksums[image_arch]
+    msg: >-
+      Kubernetes v{{ kube_version }} is not supported for {{ image_arch }}.
+      Please check roles/kubespray_defaults/vars/main/checksums.yml for supported versions.

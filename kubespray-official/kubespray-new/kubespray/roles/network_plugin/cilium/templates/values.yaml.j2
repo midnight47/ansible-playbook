@@ -7,8 +7,8 @@ image:
   repository: {{ cilium_image_repo }}
   tag: {{ cilium_image_tag }}
 
-k8sServiceHost: "auto"
-k8sServicePort: "auto"
+k8sServiceHost: "{{ kube_apiserver_global_endpoint | urlsplit('hostname') }}"
+k8sServicePort: "{{ kube_apiserver_global_endpoint | urlsplit('port') }}"
 
 ipv4:
   enabled: {{ cilium_enable_ipv4 | to_json }}
@@ -27,7 +27,7 @@ identityAllocationMode: {{ cilium_identity_allocation_mode }}
 
 tunnelProtocol: {{ cilium_tunnel_mode }}
 
-loadbalancer:
+loadBalancer:
   mode: {{ cilium_loadbalancer_mode }}
 
 kubeProxyReplacement: {{ cilium_kube_proxy_replacement | to_json }}
@@ -56,11 +56,14 @@ bpf:
 cni:
   exclusive: {{ cilium_cni_exclusive | to_json }}
   logFile: {{ cilium_cni_log_file }}
+{% if cilium_enable_portmap %}
+  chainingMode: portmap
+{% endif %}
 
 autoDirectNodeRoutes: {{ cilium_auto_direct_node_routes | to_json }}
 
-ipv4NativeRoutingCIDR: {{ cilium_native_routing_cidr }}
-ipv6NativeRoutingCIDR: {{ cilium_native_routing_cidr_ipv6 }}
+ipv4NativeRoutingCIDR: "{{ cilium_native_routing_cidr }}"
+ipv6NativeRoutingCIDR: "{{ cilium_native_routing_cidr_ipv6 }}"
 
 encryption:
   enabled: {{ cilium_encryption_enabled | to_json }}
@@ -107,8 +110,14 @@ hubble:
   metrics:
     enabled: {{ cilium_hubble_metrics | to_json }}
   export:
+{% if cilium_version is version('1.18.0', '>=') %}
+    static:
+      fileMaxBackups: {{ cilium_hubble_export_file_max_backups }}
+      fileMaxSizeMb: {{ cilium_hubble_export_file_max_size_mb }}
+{% else %}
     fileMaxBackups: {{ cilium_hubble_export_file_max_backups }}
     fileMaxSizeMb: {{ cilium_hubble_export_file_max_size_mb }}
+{% endif %}
     dynamic:
       enabled: {{ cilium_hubble_export_dynamic_enabled | to_json }}
       config:
@@ -133,6 +142,14 @@ cgroup:
   autoMount:
     enabled: {{ cilium_cgroup_auto_mount | to_json }}
   hostRoot: {{ cilium_cgroup_host_root }}
+
+resources:
+  limits:
+    memory: "{{ cilium_memory_limit }}"
+    cpu: "{{ cilium_cpu_limit }}"
+  requests:
+    memory: "{{ cilium_memory_requests }}"
+    cpu: "{{ cilium_cpu_requests }}"
 
 operator:
   image:
@@ -159,6 +176,9 @@ hostFirewall:
   enabled: {{ cilium_enable_host_firewall | to_json }}
 
 policyAuditMode: {{ cilium_policy_audit_mode | to_json }}
+
+prometheus:
+  enabled: {{ cilium_enable_prometheus | to_json }}
 
 certgen:
   image:

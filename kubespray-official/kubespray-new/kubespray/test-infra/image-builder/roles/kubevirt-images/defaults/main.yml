@@ -3,7 +3,12 @@ images_dir: /images/base
 
 docker_user: kubespray+buildvmimages
 docker_host: quay.io
+docker_login: true
 registry: quay.io/kubespray
+kubevirt_images_push: true
+kubevirt_images_selected: []
+kubevirt_container_builder: docker
+kubevirt_buildkit_output_dir: "{{ images_dir }}/buildkit-output"
 
 images:
   ubuntu-2004:
@@ -22,8 +27,8 @@ images:
 
   ubuntu-2404:
     filename: noble-server-cloudimg-amd64.img
-    url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
-    checksum: sha256:0cf56a2b23b430c350311dbcb9221b64823a5f7a401b5cf6ab4821f2ffdabe76
+    url: https://cloud-images.ubuntu.com/noble/20260323/noble-server-cloudimg-amd64.img
+    checksum: sha256:6e7016f2c9f4d3c00f48789eb6b9043ba2172ccc1b6b1eaf3ed1e29dd3e52bb3
     converted: false
     tag: "latest"
 
@@ -66,6 +71,13 @@ images:
     filename: Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2
     url: https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2
     checksum: sha256:e401a4db2e5e04d1967b6729774faa96da629bcf3ba90b67d8d9cce9906bec0f
+    converted: true
+    tag: "latest"
+
+  fedora-43:
+    filename: Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2
+    url: https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2
+    checksum: sha256:846574c8a97cd2d8dc1f231062d73107cc85cbbbda56335e264a46e3a6c8ab2f
     converted: true
     tag: "latest"
 
@@ -117,6 +129,10 @@ images:
     checksum: sha256:20e771c654724e002c32fb92a05fdfdd7ac878c192f50e2fc21f53e8f098b8f9
     converted: true
     tag: "latest"
+
+  # rockylinux-10-extra:
+  #   default cloud image doesn't included `kernel-modules-extra`. How to build RockyLinux 10 + `kernel-module-extra` with dib
+  #   https://github.com/kubernetes-sigs/kubespray/pull/12355#issuecomment-3705400093
 
   debian-10:
     filename: debian-10-openstack-amd64.qcow2

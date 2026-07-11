@@ -22,7 +22,8 @@ local_release_dir: "/tmp/releases"
 # Random shifts for retrying failed ops like pushing/downloading
 retry_stagger: 5
 
-# This is the user that owns tha cluster installation.
+# This is the user that owns the cluster installation.
+# Note: cilium needs to set kube_owner to root https://kubespray.io/#/docs/CNI/cilium?id=unprivileged-agent-configuration
 kube_owner: kube
 
 # This is the group that the cert creation scripts chgrp the
@@ -51,6 +52,21 @@ kube_token_auth: true
 # kube_oidc_username_prefix: 'oidc:'
 # kube_oidc_groups_claim: groups
 # kube_oidc_groups_prefix: 'oidc:'
+
+## Structured AuthenticationConfiguration https://kubernetes.io/docs/reference/access-authn-authz/authentication/#using-authentication-configuration
+## Note: --authentication-config and --oidc-* flags are mutually exclusive
+# kube_apiserver_use_authentication_config_file: false
+# kube_apiserver_authentication_config_jwt:
+#   - issuer:
+#       url: https://issuer.example.com
+#       audiences:
+#       - my-audience
+#     claimMappings:
+#       username:
+#         expression: 'claims.sub'
+# kube_apiserver_authentication_config_anonymous:
+#   enabled: "{{ kube_api_anonymous_auth }}"
+#   conditions: []
 
 ## Variables to control webhook authn/authz
 # kube_webhook_token_auth: false
@@ -121,7 +137,7 @@ kube_proxy_mode: ipvs
 
 # configure arp_ignore and arp_announce to avoid answering ARP queries from kube-ipvs0 interface
 # must be set to true for MetalLB, kube-vip(ARP enabled) to work
-kube_proxy_strict_arp: false
+kube_proxy_strict_arp: true
 
 # A string slice of values which specify the addresses to use for NodePorts.
 # Values may be valid IP blocks (e.g. 1.2.3.0/24, 1.2.3.4/32).

@@ -1,5 +1,28 @@
-- name: Copy sshd_config to remote host
-  template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/sshd_config{{ ansible_distribution_major_version }}" dest=/etc/ssh/sshd_config  mode='600'
+- name: Copy sshd_config to remote host on RHEL family
+  template:
+    src: "{{ role_path }}/templates/sshd_config{{ ansible_distribution_major_version }}"
+    dest: /etc/ssh/sshd_config
+    mode: '0600'
   notify:
-        - restart sshd
+    - restart sshd
   when: ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+
+- name: Ensure sshd_config.d exists on Debian/Ubuntu
+  file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    mode: '0755'
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- name: Configure SSH on Debian/Ubuntu
+  copy:
+    dest: /etc/ssh/sshd_config.d/99-new-server.conf
+    mode: '0644'
+    content: |
+      PermitRootLogin yes
+      PubkeyAuthentication yes
+      PasswordAuthentication yes
+      AuthorizedKeysFile .ssh/authorized_keys
+  notify:
+    - restart ssh
+  when: ansible_distribution in ['Debian', 'Ubuntu']

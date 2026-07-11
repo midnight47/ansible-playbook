@@ -43,10 +43,10 @@
 
 - name: Delete firewalld service
   yum:
-    name: 
+    name:
       - firewalld
     state: absent
-  when: 
+  when:
     - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
 - name: Install additional packages
@@ -55,11 +55,11 @@
       - iptables
       - iptables-services
     state: latest
-  register: iptables_install_result
-  when: 
+  register: iptables_install_result_rhel
+  when:
     - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
 
-- name: Install default packages debian
+- name: Install default packages Debian/Ubuntu except Debian 13
   apt:
     name:
       - thin-provisioning-tools
@@ -83,19 +83,54 @@
       - python3-jmespath
       - apt-transport-https
       - conntrack
-      - python-apt-doc 
+      - python-apt-doc
       - python-apt-common
       - jq
     state: present
-  when: ansible_distribution in ['Debian', 'Ubuntu']
+    update_cache: true
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - not (ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 13)
 
-- name: Install additional packages in Debian 11
+- name: Install default packages Debian 13+
+  apt:
+    name:
+      - thin-provisioning-tools
+      - sshpass
+      - sudo
+      - telnet
+      - htop
+      - dnsutils
+      - net-tools
+      - vim
+      - nano
+      - tcpdump
+      - ntpsec
+      - ntpsec-ntpdate
+      - python3-selinux
+      - wget
+      - rsync
+      - curl
+      - python3-apt
+      - python3-jmespath
+      - apt-transport-https
+      - conntrack
+      - python-apt-doc
+      - python-apt-common
+      - jq
+    state: present
+    update_cache: true
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_distribution_major_version | int >= 13
+
+- name: Install iptables packages Debian/Ubuntu
   apt:
     name:
       - iptables
       - iptables-persistent
     state: present
-  register: iptables_install_result
+  register: iptables_install_result_debian
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Delete ufw service
@@ -104,18 +139,44 @@
     state: absent
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
-
-- name: Enable and start iptables service
+- name: Enable and start iptables service on RHEL family
   ansible.builtin.systemd:
     name: iptables
     enabled: true
     state: started
-  when: iptables_install_result.changed
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+    - iptables_install_result_rhel.changed | default(false)
 
-- name: Flush all iptables rules
+- name: Flush all iptables rules on RHEL family
   ansible.builtin.command: iptables -F
-  when: iptables_install_result.changed
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+    - iptables_install_result_rhel.changed | default(false)
 
-- name: Save iptables rules
+- name: Save iptables rules on RHEL family
   ansible.builtin.command: service iptables save
-  when: iptables_install_result.changed
+  when:
+    - ansible_distribution in ['RedHat', 'CentOS', 'Rocky']
+    - iptables_install_result_rhel.changed | default(false)
+
+- name: Enable and start netfilter-persistent on Debian/Ubuntu
+  ansible.builtin.systemd:
+    name: netfilter-persistent
+    enabled: true
+    state: started
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - iptables_install_result_debian.changed | default(false)
+
+- name: Flush all iptables rules on Debian/Ubuntu
+  ansible.builtin.command: iptables -F
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - iptables_install_result_debian.changed | default(false)
+
+- name: Save iptables rules on Debian/Ubuntu
+  ansible.builtin.command: netfilter-persistent save
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - iptables_install_result_debian.changed | default(false)

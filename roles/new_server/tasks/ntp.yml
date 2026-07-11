@@ -1,35 +1,68 @@
-- name: Copy NTP config to remote host
-  template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/ntp.conf" dest=/etc/ntp.conf
+- name: Copy NTP config to remote host on RHEL/CentOS
+  template:
+    src: "{{ role_path }}/templates/ntp.conf"
+    dest: /etc/ntp.conf
   notify:
-  - restart ntpd
+    - restart ntpd
   when: ansible_distribution in ['RedHat', 'CentOS']
 
-- name: Copy NTP config to remote host
-  template: src="{{ ansible_playbook_dir }}/roles/new_server/templates/ntp.conf" dest=/etc/ntp.conf
+- name: Copy NTP config to remote host on Debian/Ubuntu except Debian 13
+  template:
+    src: "{{ role_path }}/templates/ntp.conf"
+    dest: /etc/ntp.conf
   notify:
-  - restart ntp
-  when: ansible_distribution in ['Debian', 'Ubuntu']
+    - restart ntp
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - not (ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 13)
 
-- name: set timezone
+- name: Ensure NTPsec config directory exists on Debian 13+
+  file:
+    path: /etc/ntpsec
+    state: directory
+    mode: '0755'
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_distribution_major_version | int >= 13
+
+- name: Copy NTPsec config to remote host on Debian 13+
+  template:
+    src: "{{ role_path }}/templates/ntp.conf"
+    dest: /etc/ntpsec/ntp.conf
+  notify:
+    - restart ntpsec
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_distribution_major_version | int >= 13
+
+- name: Set timezone
   timezone:
     name: "{{ timezone }}"
 
-- name: update time 
+- name: Update time on Debian/Ubuntu except Debian 13
   command: "ntpdate 0.debian.pool.ntp.org"
-  when: ansible_distribution in ['Debian', 'Ubuntu']
+  when:
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - not (ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 13)
 
-- name: ntpd stop
+- name: Update time on Debian 13+
+  command: "ntpdate 0.debian.pool.ntp.org"
+  when:
+    - ansible_distribution == 'Debian'
+    - ansible_distribution_major_version | int >= 13
+
+- name: Stop ntpd on RHEL/CentOS
   service:
     name: ntpd
     state: stopped
     enabled: yes
   when: ansible_distribution in ['RedHat', 'CentOS']
 
-- name: update time 
+- name: Update time on RHEL/CentOS
   command: "ntpd -gq"
   when: ansible_distribution in ['RedHat', 'CentOS']
 
-- name: ntpd start
+- name: Start ntpd on RHEL/CentOS
   service:
     name: ntpd
     state: started
